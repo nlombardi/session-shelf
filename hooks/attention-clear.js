@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * Claude Code Tabs — attention CLEAR hook.
+ * Session Shelf — attention CLEAR hook.
  *
  * Registered by the extension on UserPromptSubmit (you replied). Removes the
  * session's marker file so the "needs you" bell turns off immediately.
@@ -23,7 +23,7 @@ process.stdin.on('end', () => {
     if (!sid) {
       return;
     }
-    const f = path.join(os.homedir(), '.claude', 'hooks', 'claude-tabs', 'attention.d', sid);
+    const f = path.join(os.homedir(), '.claude', 'hooks', 'session-shelf', 'attention.d', sid);
     fs.rmSync(f, { force: true });
   } catch {
     // Never interrupt Claude Code.

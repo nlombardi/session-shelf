@@ -85,6 +85,12 @@ export interface PersistedState {
    * '__ungrouped__' for the implicit Ungrouped bucket. Absent = default (hidden).
    */
   showInactive?: string[];
+  /**
+   * User-group ids that HIDE their closed sessions. User groups reveal closed
+   * sessions by default (a group is a saved set — closing a tab must not drop it
+   * from view); this list records the groups the user explicitly collapsed.
+   */
+  hideInactive?: string[];
   /** When true the tree buckets sessions by git branch instead of user groups. */
   groupByBranch?: boolean;
   version: number;

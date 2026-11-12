@@ -20,7 +20,7 @@ export interface StripHandlers {
  * sidebar tree via SessionTreeProvider.
  */
 export class StripViewProvider implements vscode.WebviewViewProvider, vscode.Disposable {
-  static readonly viewType = 'claudeSessionTabsStripView';
+  static readonly viewType = 'sessionShelfStripView';
   private view?: vscode.WebviewView;
   private readonly buildSub: vscode.Disposable;
 

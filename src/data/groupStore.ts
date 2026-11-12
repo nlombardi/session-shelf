@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { GroupDef, PersistedState } from '../model/types';
 
-const KEY = 'claudeSessionTabs.state.v1';
+const KEY = 'sessionShelf.state.v1';
 
 let counter = 0;
 function genId(): string {
@@ -35,8 +35,15 @@ export class GroupStore implements vscode.Disposable {
     return this.state.pinned.includes(sessionId);
   }
 
-  /** Whether a group (by key: group id or '__ungrouped__') reveals its closed sessions. */
+  /**
+   * Whether a bucket (group id, '__ungrouped__', or 'branch:<name>') reveals its closed
+   * sessions. User groups default to revealing them; Ungrouped and branch buckets
+   * default to hiding them.
+   */
   isShowInactive(key: string): boolean {
+    if (this.hasGroup(key)) {
+      return !(this.state.hideInactive?.includes(key) ?? false);
+    }
     return this.state.showInactive?.includes(key) ?? false;
   }
 
@@ -52,9 +59,10 @@ export class GroupStore implements vscode.Disposable {
     }
   }
 
-  /** Flip a group's "reveal closed sessions" flag. */
+  /** Flip a bucket's "reveal closed sessions" flag. */
   async toggleShowInactive(key: string): Promise<void> {
-    const arr = this.state.showInactive ?? (this.state.showInactive = []);
+    const field = this.hasGroup(key) ? 'hideInactive' : 'showInactive';
+    const arr = this.state[field] ?? (this.state[field] = []);
     const i = arr.indexOf(key);
     if (i >= 0) {
       arr.splice(i, 1);
@@ -62,6 +70,34 @@ export class GroupStore implements vscode.Disposable {
       arr.push(key);
     }
     await this.save();
+  }
+
+  /**
+   * Carry a provisional id's group + pin over to a session's real id. A brand-new tab
+   * is tracked under a synthetic `live:` id until Claude writes its transcript; without
+   * this, anything the user did to it in that window is lost when the tab closes.
+   */
+  async migrate(fromId: string, toId: string): Promise<void> {
+    let changed = false;
+    const g = this.state.assignments[fromId];
+    if (g !== undefined) {
+      if (this.state.assignments[toId] === undefined) {
+        this.state.assignments[toId] = g;
+      }
+      delete this.state.assignments[fromId];
+      changed = true;
+    }
+    const pi = this.state.pinned.indexOf(fromId);
+    if (pi >= 0) {
+      this.state.pinned.splice(pi, 1);
+      if (!this.state.pinned.includes(toId)) {
+        this.state.pinned.push(toId);
+      }
+      changed = true;
+    }
+    if (changed) {
+      await this.save();
+    }
   }
 
   hasGroup(id: string): boolean {
@@ -100,6 +136,9 @@ export class GroupStore implements vscode.Disposable {
     }
     if (this.state.showInactive) {
       this.state.showInactive = this.state.showInactive.filter((k) => k !== id);
+    }
+    if (this.state.hideInactive) {
+      this.state.hideInactive = this.state.hideInactive.filter((k) => k !== id);
     }
     await this.save();
   }

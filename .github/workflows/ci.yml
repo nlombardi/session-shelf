@@ -30,11 +30,11 @@ jobs:
         run: npm run package
 
       - name: Package VSIX
-        run: npx --yes @vscode/vsce package --no-dependencies -o claude-session-tabs.vsix
+        run: npx --yes @vscode/vsce package --no-dependencies -o session-shelf.vsix
 
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
         with:
-          name: claude-session-tabs-vsix
-          path: claude-session-tabs.vsix
+          name: session-shelf-vsix
+          path: session-shelf.vsix
           if-no-files-found: error

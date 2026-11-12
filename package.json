@@ -1,511 +1,513 @@
 {
-  "name": "claude-session-tabs",
-  "displayName": "Claude Code Tabs",
-  "description": "Chrome-style tab management for Claude Code — grouped, colored sessions with rich hover previews.",
-  "version": "0.2.1",
-  "publisher": "yousefkadah",
-  "license": "MIT",
-  "icon": "resources/icon.png",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/yousefkadah/claude-session-tabs.git"
-  },
-  "bugs": {
-    "url": "https://github.com/yousefkadah/claude-session-tabs/issues"
-  },
-  "homepage": "https://github.com/yousefkadah/claude-session-tabs#readme",
-  "galleryBanner": {
-    "color": "#22252B",
-    "theme": "dark"
-  },
-  "engines": {
-    "vscode": "^1.84.0"
-  },
-  "categories": [
-    "Other"
-  ],
-  "keywords": [
-    "claude",
-    "claude code",
-    "anthropic",
-    "tabs",
-    "sessions",
-    "tab groups"
-  ],
-  "activationEvents": [
-    "onStartupFinished"
-  ],
-  "main": "./dist/extension.js",
-  "contributes": {
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "claudeSessionTabsContainer",
-          "title": "Claude Code Tabs",
-          "icon": "resources/claude-tabs.svg"
-        }
-      ],
-      "panel": [
-        {
-          "id": "claudeSessionTabsStrip",
-          "title": "Claude Code Tabs",
-          "icon": "resources/claude-tabs.svg"
-        }
-      ]
-    },
-    "views": {
-      "claudeSessionTabsContainer": [
-        {
-          "id": "claudeSessionTabs",
-          "name": "Sessions",
-          "icon": "resources/claude-tabs.svg"
-        },
-        {
-          "id": "claudeSessionTabsWorktrees",
-          "name": "Branches",
-          "icon": "resources/claude-tabs.svg"
-        }
-      ],
-      "claudeSessionTabsStrip": [
-        {
-          "id": "claudeSessionTabsStripView",
-          "type": "webview",
-          "name": "Session Strip"
-        }
-      ],
-      "claude-sessions-sidebar": [
-        {
-          "id": "claudeSessionTabsInline",
-          "name": "Session Tabs",
-          "when": "claude-vscode.sessionsListEnabled"
-        }
-      ]
-    },
-    "viewsWelcome": [
-      {
-        "view": "claudeSessionTabs",
-        "contents": "No Claude Code sessions found for this workspace yet.\n\nOpen a conversation in the Claude Code panel, then [refresh](command:claudeSessionTabs.refresh).\n\n[New group](command:claudeSessionTabs.newGroup)"
-      },
-      {
-        "view": "claudeSessionTabsInline",
-        "contents": "No Claude Code sessions found for this workspace yet.\n\nOpen a conversation in the Claude Code panel, then [refresh](command:claudeSessionTabs.refresh).\n\n[New group](command:claudeSessionTabs.newGroup)"
-      }
-    ],
-    "commands": [
-      {
-        "command": "claudeSessionTabs.refresh",
-        "title": "Refresh",
-        "category": "Claude Code Tabs",
-        "icon": "$(refresh)"
-      },
-      {
-        "command": "claudeSessionTabs.search",
-        "title": "Search Sessions…",
-        "category": "Claude Code Tabs",
-        "icon": "$(search)"
-      },
-      {
-        "command": "claudeSessionTabs.newGroup",
-        "title": "New Group…",
-        "category": "Claude Code Tabs",
-        "icon": "$(new-folder)"
-      },
-      {
-        "command": "claudeSessionTabs.openSession",
-        "title": "Open Session",
-        "category": "Claude Code Tabs"
-      },
-      {
-        "command": "claudeSessionTabs.closeTab",
-        "title": "Close Tab",
-        "category": "Claude Code Tabs",
-        "icon": "$(close)"
-      },
-      {
-        "command": "claudeSessionTabs.togglePin",
-        "title": "Pin / Unpin",
-        "category": "Claude Code Tabs",
-        "icon": "$(pin)"
-      },
-      {
-        "command": "claudeSessionTabs.assignToGroup",
-        "title": "Move to Group…",
-        "category": "Claude Code Tabs",
-        "icon": "$(folder)"
-      },
-      {
-        "command": "claudeSessionTabs.removeFromGroup",
-        "title": "Remove from Group",
-        "category": "Claude Code Tabs"
-      },
-      {
-        "command": "claudeSessionTabs.renameGroup",
-        "title": "Rename Group…",
-        "category": "Claude Code Tabs",
-        "icon": "$(edit)"
-      },
-      {
-        "command": "claudeSessionTabs.recolorGroup",
-        "title": "Change Color…",
-        "category": "Claude Code Tabs",
-        "icon": "$(symbol-color)"
-      },
-      {
-        "command": "claudeSessionTabs.deleteGroup",
-        "title": "Delete Group",
-        "category": "Claude Code Tabs",
-        "icon": "$(trash)"
-      },
-      {
-        "command": "claudeSessionTabs.newSessionInGroup",
-        "title": "Start New Session Here",
-        "category": "Claude Code Tabs",
-        "icon": "$(add)"
-      },
-      {
-        "command": "claudeSessionTabs.openSubagent",
-        "title": "Open Subagent",
-        "category": "Claude Code Tabs"
-      },
-      {
-        "command": "claudeSessionTabs.showInactive",
-        "title": "Show Closed Sessions",
-        "category": "Claude Code Tabs",
-        "icon": "$(eye)"
-      },
-      {
-        "command": "claudeSessionTabs.hideInactive",
-        "title": "Show Active Only",
-        "category": "Claude Code Tabs",
-        "icon": "$(eye-closed)"
-      },
-      {
-        "command": "claudeSessionTabs.enableAttention",
-        "title": "Enable Real-time Attention…",
-        "category": "Claude Code Tabs",
-        "icon": "$(bell)"
-      },
-      {
-        "command": "claudeSessionTabs.disableAttention",
-        "title": "Disable Real-time Attention",
-        "category": "Claude Code Tabs",
-        "icon": "$(bell-slash)"
-      },
-      {
-        "command": "claudeSessionTabs.groupByBranch",
-        "title": "Group by Branch",
-        "category": "Claude Code Tabs",
-        "icon": "$(git-branch)"
-      },
-      {
-        "command": "claudeSessionTabs.groupByGroup",
-        "title": "Group by Group",
-        "category": "Claude Code Tabs",
-        "icon": "$(list-tree)"
-      },
-      {
-        "command": "claudeSessionTabs.newBranchSession",
-        "title": "New Branch Session…",
-        "category": "Claude Code Tabs",
-        "icon": "$(add)"
-      },
-      {
-        "command": "claudeSessionTabs.openWorktreeSession",
-        "title": "Open Worktree Session",
-        "category": "Claude Code Tabs"
-      }
-    ],
-    "menus": {
-      "view/title": [
-        {
-          "command": "claudeSessionTabs.search",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/",
-          "group": "navigation@1"
-        },
-        {
-          "command": "claudeSessionTabs.newGroup",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/",
-          "group": "navigation@2"
-        },
-        {
-          "command": "claudeSessionTabs.refresh",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/",
-          "group": "navigation@3"
-        },
-        {
-          "command": "claudeSessionTabs.groupByBranch",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/ && !claudeSessionTabs.branchMode",
-          "group": "navigation@0"
-        },
-        {
-          "command": "claudeSessionTabs.groupByGroup",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/ && claudeSessionTabs.branchMode",
-          "group": "navigation@0"
-        },
-        {
-          "command": "claudeSessionTabs.newBranchSession",
-          "when": "view == claudeSessionTabsWorktrees",
-          "group": "navigation@1"
-        },
-        {
-          "command": "claudeSessionTabs.refresh",
-          "when": "view == claudeSessionTabsWorktrees",
-          "group": "navigation@2"
-        },
-        {
-          "command": "claudeSessionTabs.enableAttention",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/ && !claudeSessionTabs.attentionInstalled",
-          "group": "9_hooks@1"
-        },
-        {
-          "command": "claudeSessionTabs.disableAttention",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/ && claudeSessionTabs.attentionInstalled",
-          "group": "9_hooks@2"
-        }
-      ],
-      "view/item/context": [
-        {
-          "command": "claudeSessionTabs.newSessionInGroup",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/ && viewItem =~ /(^|\\s)group(\\s|$)/",
-          "group": "inline@0"
-        },
-        {
-          "command": "claudeSessionTabs.showInactive",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/ && viewItem =~ /hiding-inactive/",
-          "group": "inline@1"
-        },
-        {
-          "command": "claudeSessionTabs.hideInactive",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/ && viewItem =~ /showing-inactive/",
-          "group": "inline@1"
-        },
-        {
-          "command": "claudeSessionTabs.newSessionInGroup",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/ && viewItem =~ /(^|\\s)group(\\s|$)/",
-          "group": "0_new@1"
-        },
-        {
-          "command": "claudeSessionTabs.showInactive",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/ && viewItem =~ /hiding-inactive/",
-          "group": "0_new@2"
-        },
-        {
-          "command": "claudeSessionTabs.hideInactive",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/ && viewItem =~ /showing-inactive/",
-          "group": "0_new@2"
-        },
-        {
-          "command": "claudeSessionTabs.togglePin",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/ && viewItem =~ /session/",
-          "group": "inline@2"
-        },
-        {
-          "command": "claudeSessionTabs.closeTab",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/ && viewItem =~ /open/",
-          "group": "inline@3"
-        },
-        {
-          "command": "claudeSessionTabs.openSession",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/ && viewItem =~ /session/",
-          "group": "1_open@1"
-        },
-        {
-          "command": "claudeSessionTabs.assignToGroup",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/ && viewItem =~ /session/",
-          "group": "2_group@1"
-        },
-        {
-          "command": "claudeSessionTabs.removeFromGroup",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/ && viewItem =~ /grouped/",
-          "group": "2_group@2"
-        },
-        {
-          "command": "claudeSessionTabs.togglePin",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/ && viewItem =~ /session/",
-          "group": "2_group@4"
-        },
-        {
-          "command": "claudeSessionTabs.closeTab",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/ && viewItem =~ /open/",
-          "group": "3_tab@1"
-        },
-        {
-          "command": "claudeSessionTabs.renameGroup",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/ && viewItem =~ /(^|\\s)group(\\s|$)/",
-          "group": "1_edit@1"
-        },
-        {
-          "command": "claudeSessionTabs.recolorGroup",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/ && viewItem =~ /(^|\\s)group(\\s|$)/",
-          "group": "1_edit@2"
-        },
-        {
-          "command": "claudeSessionTabs.deleteGroup",
-          "when": "view =~ /^claudeSessionTabs(Inline)?$/ && viewItem =~ /(^|\\s)group(\\s|$)/",
-          "group": "9_danger@1"
-        }
-      ],
-      "commandPalette": [
-        {
-          "command": "claudeSessionTabs.newSessionInGroup",
-          "when": "false"
-        },
-        {
-          "command": "claudeSessionTabs.openSession",
-          "when": "false"
-        },
-        {
-          "command": "claudeSessionTabs.openSubagent",
-          "when": "false"
-        },
-        {
-          "command": "claudeSessionTabs.showInactive",
-          "when": "false"
-        },
-        {
-          "command": "claudeSessionTabs.hideInactive",
-          "when": "false"
-        },
-        {
-          "command": "claudeSessionTabs.closeTab",
-          "when": "false"
-        },
-        {
-          "command": "claudeSessionTabs.togglePin",
-          "when": "false"
-        },
-        {
-          "command": "claudeSessionTabs.assignToGroup",
-          "when": "false"
-        },
-        {
-          "command": "claudeSessionTabs.removeFromGroup",
-          "when": "false"
-        },
-        {
-          "command": "claudeSessionTabs.renameGroup",
-          "when": "false"
-        },
-        {
-          "command": "claudeSessionTabs.recolorGroup",
-          "when": "false"
-        },
-        {
-          "command": "claudeSessionTabs.deleteGroup",
-          "when": "false"
-        },
-        {
-          "command": "claudeSessionTabs.enableAttention",
-          "when": "!claudeSessionTabs.attentionInstalled"
-        },
-        {
-          "command": "claudeSessionTabs.disableAttention",
-          "when": "claudeSessionTabs.attentionInstalled"
-        },
-        {
-          "command": "claudeSessionTabs.openWorktreeSession",
-          "when": "false"
-        }
-      ]
-    },
-    "configuration": {
-      "title": "Claude Code Tabs",
-      "properties": {
-        "claudeSessionTabs.maxRecentSessions": {
-          "type": "number",
-          "default": 25,
-          "minimum": 0,
-          "description": "Maximum number of recent (closed) sessions to show under Ungrouped. Open, pinned and grouped sessions are always shown."
-        },
-        "claudeSessionTabs.showClosedSessions": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show recently closed sessions in addition to currently open Claude tabs."
-        },
-        "claudeSessionTabs.projectDirectory": {
-          "type": "string",
-          "default": "",
-          "description": "Override the ~/.claude/projects/<slug> directory used to read session transcripts. Leave empty to auto-detect from the workspace folder."
-        },
-        "claudeSessionTabs.attentionSound": {
-          "type": "boolean",
-          "default": true,
-          "description": "Play a sound when a session needs your attention. Requires Real-time Attention (Enable Real-time Attention from the view's ⋯ menu)."
-        },
-        "claudeSessionTabs.attentionNotification": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show a notification when a session needs your attention — a native OS banner when VS Code is in the background, or an in-app toast with a Reveal button when it's focused. Requires Real-time Attention."
-        },
-        "claudeSessionTabs.attentionSoundName": {
-          "type": "string",
-          "default": "Ping",
-          "description": "macOS system sound for the attention sound (e.g. Ping, Glass, Funk, Hero, Submarine). Ignored on Windows/Linux, which use the system notification sound."
-        }
-      }
-    },
-    "walkthroughs": [
-      {
-        "id": "claudeSessionTabs.gettingStarted",
-        "title": "Get started with Claude Code Tabs",
-        "description": "Group, preview, and switch your Claude Code conversations like browser tabs.",
-        "steps": [
-          {
-            "id": "openSessions",
-            "title": "Open the Sessions view",
-            "description": "Open the __Claude Code Tabs__ view in the Activity Bar — it lists every conversation in this workspace, grouped and color-coded (it also appears inside the Claude Code sidebar).\n[Open Claude Code Tabs](command:workbench.view.extension.claudeSessionTabsContainer)",
-            "media": {
-              "markdown": "media/walkthrough-sessions.md"
-            }
-          },
-          {
-            "id": "hover",
-            "title": "Preview on hover",
-            "description": "Hover any session to see a rich preview: the last messages, git branch, context-token count, and how long ago it was active — the Chrome-tab-hover experience for your chats.",
-            "media": {
-              "markdown": "media/walkthrough-hover.md"
-            }
-          },
-          {
-            "id": "groups",
-            "title": "Create colored groups",
-            "description": "Make a named, colored group, then drag sessions into it. Groups collapse and persist per workspace.\n[New Group](command:claudeSessionTabs.newGroup)",
-            "media": {
-              "markdown": "media/walkthrough-groups.md"
-            }
-          },
-          {
-            "id": "strip",
-            "title": "Open the horizontal strip",
-            "description": "Prefer a browser-like horizontal tab strip? Open the __Claude Code Tabs__ panel at the bottom for grouped tab chips with the same hover preview.\n[Open Strip](command:workbench.view.extension.claudeSessionTabsStrip)",
-            "media": {
-              "markdown": "media/walkthrough-strip.md"
-            }
-          },
-          {
-            "id": "search",
-            "title": "Search and pin",
-            "description": "Fuzzy-find any conversation by title or last prompt, and pin the ones you keep coming back to.\n[Search Sessions](command:claudeSessionTabs.search)",
-            "media": {
-              "markdown": "media/walkthrough-search.md"
-            }
-          }
-        ]
-      }
-    ]
-  },
-  "scripts": {
-    "vscode:prepublish": "npm run package",
-    "compile": "node esbuild.js",
-    "watch": "node esbuild.js --watch",
-    "package": "node esbuild.js --production",
-    "typecheck": "tsc --noEmit",
-    "test": "esbuild test/smoke.ts --bundle --platform=node --external:vscode --outfile=dist/smoke.cjs --format=cjs && node dist/smoke.cjs"
-  },
-  "devDependencies": {
-    "@types/node": "^20.11.0",
-    "@types/vscode": "^1.84.0",
-    "esbuild": "^0.20.0",
-    "typescript": "^5.4.0"
-  }
+	"name": "session-shelf",
+	"displayName": "Session Shelf for Claude Code",
+	"description": "Keep your Claude Code sessions in colored groups that survive closing the tab — reopen any conversation from its group, with rich hover previews.",
+	"version": "0.3.0",
+	"publisher": "datasense",
+	"license": "MIT",
+	"icon": "resources/icon.png",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/GITHUB_OWNER/session-shelf.git"
+	},
+	"bugs": {
+		"url": "https://github.com/GITHUB_OWNER/session-shelf/issues"
+	},
+	"homepage": "https://github.com/GITHUB_OWNER/session-shelf#readme",
+	"galleryBanner": {
+		"color": "#22252B",
+		"theme": "dark"
+	},
+	"engines": {
+		"vscode": "^1.84.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"keywords": [
+		"claude",
+		"claude code",
+		"anthropic",
+		"tabs",
+		"sessions",
+		"tab groups",
+		"session history",
+		"data sense"
+	],
+	"activationEvents": [
+		"onStartupFinished"
+	],
+	"main": "./dist/extension.js",
+	"contributes": {
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "sessionShelfContainer",
+					"title": "Session Shelf",
+					"icon": "resources/claude-tabs.svg"
+				}
+			],
+			"panel": [
+				{
+					"id": "sessionShelfStrip",
+					"title": "Session Shelf",
+					"icon": "resources/claude-tabs.svg"
+				}
+			]
+		},
+		"views": {
+			"sessionShelfContainer": [
+				{
+					"id": "sessionShelf",
+					"name": "Sessions",
+					"icon": "resources/claude-tabs.svg"
+				},
+				{
+					"id": "sessionShelfWorktrees",
+					"name": "Branches",
+					"icon": "resources/claude-tabs.svg"
+				}
+			],
+			"sessionShelfStrip": [
+				{
+					"id": "sessionShelfStripView",
+					"type": "webview",
+					"name": "Session Strip"
+				}
+			],
+			"claude-sessions-sidebar": [
+				{
+					"id": "sessionShelfInline",
+					"name": "Session Tabs",
+					"when": "claude-vscode.sessionsListEnabled"
+				}
+			]
+		},
+		"viewsWelcome": [
+			{
+				"view": "sessionShelf",
+				"contents": "No Claude Code sessions found for this workspace yet.\n\nOpen a conversation in the Claude Code panel, then [refresh](command:sessionShelf.refresh).\n\n[New group](command:sessionShelf.newGroup)"
+			},
+			{
+				"view": "sessionShelfInline",
+				"contents": "No Claude Code sessions found for this workspace yet.\n\nOpen a conversation in the Claude Code panel, then [refresh](command:sessionShelf.refresh).\n\n[New group](command:sessionShelf.newGroup)"
+			}
+		],
+		"commands": [
+			{
+				"command": "sessionShelf.refresh",
+				"title": "Refresh",
+				"category": "Session Shelf",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "sessionShelf.search",
+				"title": "Search Sessions…",
+				"category": "Session Shelf",
+				"icon": "$(search)"
+			},
+			{
+				"command": "sessionShelf.newGroup",
+				"title": "New Group…",
+				"category": "Session Shelf",
+				"icon": "$(new-folder)"
+			},
+			{
+				"command": "sessionShelf.openSession",
+				"title": "Open Session",
+				"category": "Session Shelf"
+			},
+			{
+				"command": "sessionShelf.closeTab",
+				"title": "Close Tab",
+				"category": "Session Shelf",
+				"icon": "$(close)"
+			},
+			{
+				"command": "sessionShelf.togglePin",
+				"title": "Pin / Unpin",
+				"category": "Session Shelf",
+				"icon": "$(pin)"
+			},
+			{
+				"command": "sessionShelf.assignToGroup",
+				"title": "Move to Group…",
+				"category": "Session Shelf",
+				"icon": "$(folder)"
+			},
+			{
+				"command": "sessionShelf.removeFromGroup",
+				"title": "Remove from Group",
+				"category": "Session Shelf"
+			},
+			{
+				"command": "sessionShelf.renameGroup",
+				"title": "Rename Group…",
+				"category": "Session Shelf",
+				"icon": "$(edit)"
+			},
+			{
+				"command": "sessionShelf.recolorGroup",
+				"title": "Change Color…",
+				"category": "Session Shelf",
+				"icon": "$(symbol-color)"
+			},
+			{
+				"command": "sessionShelf.deleteGroup",
+				"title": "Delete Group",
+				"category": "Session Shelf",
+				"icon": "$(trash)"
+			},
+			{
+				"command": "sessionShelf.newSessionInGroup",
+				"title": "Start New Session Here",
+				"category": "Session Shelf",
+				"icon": "$(add)"
+			},
+			{
+				"command": "sessionShelf.openSubagent",
+				"title": "Open Subagent",
+				"category": "Session Shelf"
+			},
+			{
+				"command": "sessionShelf.showInactive",
+				"title": "Show Closed Sessions",
+				"category": "Session Shelf",
+				"icon": "$(eye)"
+			},
+			{
+				"command": "sessionShelf.hideInactive",
+				"title": "Show Active Only",
+				"category": "Session Shelf",
+				"icon": "$(eye-closed)"
+			},
+			{
+				"command": "sessionShelf.enableAttention",
+				"title": "Enable Real-time Attention…",
+				"category": "Session Shelf",
+				"icon": "$(bell)"
+			},
+			{
+				"command": "sessionShelf.disableAttention",
+				"title": "Disable Real-time Attention",
+				"category": "Session Shelf",
+				"icon": "$(bell-slash)"
+			},
+			{
+				"command": "sessionShelf.groupByBranch",
+				"title": "Group by Branch",
+				"category": "Session Shelf",
+				"icon": "$(git-branch)"
+			},
+			{
+				"command": "sessionShelf.groupByGroup",
+				"title": "Group by Group",
+				"category": "Session Shelf",
+				"icon": "$(list-tree)"
+			},
+			{
+				"command": "sessionShelf.newBranchSession",
+				"title": "New Branch Session…",
+				"category": "Session Shelf",
+				"icon": "$(add)"
+			},
+			{
+				"command": "sessionShelf.openWorktreeSession",
+				"title": "Open Worktree Session",
+				"category": "Session Shelf"
+			}
+		],
+		"menus": {
+			"view/title": [
+				{
+					"command": "sessionShelf.search",
+					"when": "view =~ /^sessionShelf(Inline)?$/",
+					"group": "navigation@1"
+				},
+				{
+					"command": "sessionShelf.newGroup",
+					"when": "view =~ /^sessionShelf(Inline)?$/",
+					"group": "navigation@2"
+				},
+				{
+					"command": "sessionShelf.refresh",
+					"when": "view =~ /^sessionShelf(Inline)?$/",
+					"group": "navigation@3"
+				},
+				{
+					"command": "sessionShelf.groupByBranch",
+					"when": "view =~ /^sessionShelf(Inline)?$/ && !sessionShelf.branchMode",
+					"group": "navigation@0"
+				},
+				{
+					"command": "sessionShelf.groupByGroup",
+					"when": "view =~ /^sessionShelf(Inline)?$/ && sessionShelf.branchMode",
+					"group": "navigation@0"
+				},
+				{
+					"command": "sessionShelf.newBranchSession",
+					"when": "view == sessionShelfWorktrees",
+					"group": "navigation@1"
+				},
+				{
+					"command": "sessionShelf.refresh",
+					"when": "view == sessionShelfWorktrees",
+					"group": "navigation@2"
+				},
+				{
+					"command": "sessionShelf.enableAttention",
+					"when": "view =~ /^sessionShelf(Inline)?$/ && !sessionShelf.attentionInstalled",
+					"group": "9_hooks@1"
+				},
+				{
+					"command": "sessionShelf.disableAttention",
+					"when": "view =~ /^sessionShelf(Inline)?$/ && sessionShelf.attentionInstalled",
+					"group": "9_hooks@2"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "sessionShelf.newSessionInGroup",
+					"when": "view =~ /^sessionShelf(Inline)?$/ && viewItem =~ /(^|\\s)group(\\s|$)/",
+					"group": "inline@0"
+				},
+				{
+					"command": "sessionShelf.showInactive",
+					"when": "view =~ /^sessionShelf(Inline)?$/ && viewItem =~ /hiding-inactive/",
+					"group": "inline@1"
+				},
+				{
+					"command": "sessionShelf.hideInactive",
+					"when": "view =~ /^sessionShelf(Inline)?$/ && viewItem =~ /showing-inactive/",
+					"group": "inline@1"
+				},
+				{
+					"command": "sessionShelf.newSessionInGroup",
+					"when": "view =~ /^sessionShelf(Inline)?$/ && viewItem =~ /(^|\\s)group(\\s|$)/",
+					"group": "0_new@1"
+				},
+				{
+					"command": "sessionShelf.showInactive",
+					"when": "view =~ /^sessionShelf(Inline)?$/ && viewItem =~ /hiding-inactive/",
+					"group": "0_new@2"
+				},
+				{
+					"command": "sessionShelf.hideInactive",
+					"when": "view =~ /^sessionShelf(Inline)?$/ && viewItem =~ /showing-inactive/",
+					"group": "0_new@2"
+				},
+				{
+					"command": "sessionShelf.togglePin",
+					"when": "view =~ /^sessionShelf(Inline)?$/ && viewItem =~ /session/",
+					"group": "inline@2"
+				},
+				{
+					"command": "sessionShelf.closeTab",
+					"when": "view =~ /^sessionShelf(Inline)?$/ && viewItem =~ /open/",
+					"group": "inline@3"
+				},
+				{
+					"command": "sessionShelf.openSession",
+					"when": "view =~ /^sessionShelf(Inline)?$/ && viewItem =~ /session/",
+					"group": "1_open@1"
+				},
+				{
+					"command": "sessionShelf.assignToGroup",
+					"when": "view =~ /^sessionShelf(Inline)?$/ && viewItem =~ /session/",
+					"group": "2_group@1"
+				},
+				{
+					"command": "sessionShelf.removeFromGroup",
+					"when": "view =~ /^sessionShelf(Inline)?$/ && viewItem =~ /grouped/",
+					"group": "2_group@2"
+				},
+				{
+					"command": "sessionShelf.togglePin",
+					"when": "view =~ /^sessionShelf(Inline)?$/ && viewItem =~ /session/",
+					"group": "2_group@4"
+				},
+				{
+					"command": "sessionShelf.closeTab",
+					"when": "view =~ /^sessionShelf(Inline)?$/ && viewItem =~ /open/",
+					"group": "3_tab@1"
+				},
+				{
+					"command": "sessionShelf.renameGroup",
+					"when": "view =~ /^sessionShelf(Inline)?$/ && viewItem =~ /(^|\\s)group(\\s|$)/",
+					"group": "1_edit@1"
+				},
+				{
+					"command": "sessionShelf.recolorGroup",
+					"when": "view =~ /^sessionShelf(Inline)?$/ && viewItem =~ /(^|\\s)group(\\s|$)/",
+					"group": "1_edit@2"
+				},
+				{
+					"command": "sessionShelf.deleteGroup",
+					"when": "view =~ /^sessionShelf(Inline)?$/ && viewItem =~ /(^|\\s)group(\\s|$)/",
+					"group": "9_danger@1"
+				}
+			],
+			"commandPalette": [
+				{
+					"command": "sessionShelf.newSessionInGroup",
+					"when": "false"
+				},
+				{
+					"command": "sessionShelf.openSession",
+					"when": "false"
+				},
+				{
+					"command": "sessionShelf.openSubagent",
+					"when": "false"
+				},
+				{
+					"command": "sessionShelf.showInactive",
+					"when": "false"
+				},
+				{
+					"command": "sessionShelf.hideInactive",
+					"when": "false"
+				},
+				{
+					"command": "sessionShelf.closeTab",
+					"when": "false"
+				},
+				{
+					"command": "sessionShelf.togglePin",
+					"when": "false"
+				},
+				{
+					"command": "sessionShelf.assignToGroup",
+					"when": "false"
+				},
+				{
+					"command": "sessionShelf.removeFromGroup",
+					"when": "false"
+				},
+				{
+					"command": "sessionShelf.renameGroup",
+					"when": "false"
+				},
+				{
+					"command": "sessionShelf.recolorGroup",
+					"when": "false"
+				},
+				{
+					"command": "sessionShelf.deleteGroup",
+					"when": "false"
+				},
+				{
+					"command": "sessionShelf.enableAttention",
+					"when": "!sessionShelf.attentionInstalled"
+				},
+				{
+					"command": "sessionShelf.disableAttention",
+					"when": "sessionShelf.attentionInstalled"
+				},
+				{
+					"command": "sessionShelf.openWorktreeSession",
+					"when": "false"
+				}
+			]
+		},
+		"configuration": {
+			"title": "Session Shelf",
+			"properties": {
+				"sessionShelf.maxRecentSessions": {
+					"type": "number",
+					"default": 25,
+					"minimum": 0,
+					"description": "Maximum number of recent (closed) sessions to show under Ungrouped. Open, pinned and grouped sessions are always shown."
+				},
+				"sessionShelf.showClosedSessions": {
+					"type": "boolean",
+					"default": true,
+					"description": "Show recently closed sessions in addition to currently open Claude tabs."
+				},
+				"sessionShelf.projectDirectory": {
+					"type": "string",
+					"default": "",
+					"description": "Override the ~/.claude/projects/<slug> directory used to read session transcripts. Leave empty to auto-detect from the workspace folder."
+				},
+				"sessionShelf.attentionSound": {
+					"type": "boolean",
+					"default": true,
+					"description": "Play a sound when a session needs your attention. Requires Real-time Attention (Enable Real-time Attention from the view's ⋯ menu)."
+				},
+				"sessionShelf.attentionNotification": {
+					"type": "boolean",
+					"default": true,
+					"description": "Show a notification when a session needs your attention — a native OS banner when VS Code is in the background, or an in-app toast with a Reveal button when it's focused. Requires Real-time Attention."
+				},
+				"sessionShelf.attentionSoundName": {
+					"type": "string",
+					"default": "Ping",
+					"description": "macOS system sound for the attention sound (e.g. Ping, Glass, Funk, Hero, Submarine). Ignored on Windows/Linux, which use the system notification sound."
+				}
+			}
+		},
+		"walkthroughs": [
+			{
+				"id": "sessionShelf.gettingStarted",
+				"title": "Get started with Session Shelf",
+				"description": "Group, preview, and switch your Claude Code conversations like browser tabs.",
+				"steps": [
+					{
+						"id": "openSessions",
+						"title": "Open the Sessions view",
+						"description": "Open the __Session Shelf__ view in the Activity Bar — it lists every conversation in this workspace, grouped and color-coded (it also appears inside the Claude Code sidebar).\n[Open Session Shelf](command:workbench.view.extension.sessionShelfContainer)",
+						"media": {
+							"markdown": "media/walkthrough-sessions.md"
+						}
+					},
+					{
+						"id": "hover",
+						"title": "Preview on hover",
+						"description": "Hover any session to see a rich preview: the last messages, git branch, context-token count, and how long ago it was active — the Chrome-tab-hover experience for your chats.",
+						"media": {
+							"markdown": "media/walkthrough-hover.md"
+						}
+					},
+					{
+						"id": "groups",
+						"title": "Create colored groups",
+						"description": "Make a named, colored group, then drag sessions into it. Groups collapse and persist per workspace.\n[New Group](command:sessionShelf.newGroup)",
+						"media": {
+							"markdown": "media/walkthrough-groups.md"
+						}
+					},
+					{
+						"id": "strip",
+						"title": "Open the horizontal strip",
+						"description": "Prefer a browser-like horizontal tab strip? Open the __Session Shelf__ panel at the bottom for grouped tab chips with the same hover preview.\n[Open Strip](command:workbench.view.extension.sessionShelfStrip)",
+						"media": {
+							"markdown": "media/walkthrough-strip.md"
+						}
+					},
+					{
+						"id": "search",
+						"title": "Search and pin",
+						"description": "Fuzzy-find any conversation by title or last prompt, and pin the ones you keep coming back to.\n[Search Sessions](command:sessionShelf.search)",
+						"media": {
+							"markdown": "media/walkthrough-search.md"
+						}
+					}
+				]
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run package",
+		"compile": "node esbuild.js",
+		"watch": "node esbuild.js --watch",
+		"package": "node esbuild.js --production",
+		"typecheck": "tsc --noEmit",
+		"test": "esbuild test/smoke.ts --bundle --platform=node --external:vscode --outfile=dist/smoke.cjs --format=cjs && node dist/smoke.cjs && esbuild test/groupStore.test.ts --bundle --platform=node --alias:vscode=./test/vscode-stub.ts --outfile=dist/groupStore.test.cjs --format=cjs && node dist/groupStore.test.cjs"
+	},
+	"devDependencies": {
+		"@types/node": "^20.11.0",
+		"@types/vscode": "^1.84.0",
+		"esbuild": "^0.20.0",
+		"typescript": "^5.4.0"
+	}
 }

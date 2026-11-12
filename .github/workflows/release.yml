@@ -30,12 +30,12 @@ jobs:
       - run: npm test
 
       - name: Package VSIX
-        run: npx --yes @vscode/vsce package --no-dependencies -o claude-session-tabs.vsix
+        run: npx --yes @vscode/vsce package --no-dependencies -o session-shelf.vsix
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: claude-session-tabs.vsix
+          files: session-shelf.vsix
           generate_release_notes: true
 
       # Publishes to the VS Code Marketplace only if the VSCE_PAT secret is configured.
@@ -46,4 +46,4 @@ jobs:
       # Optional: also publish to Open VSX if OVSX_PAT is set.
       - name: Publish to Open VSX
         if: ${{ env.OVSX_PAT != '' }}
-        run: npx --yes ovsx publish claude-session-tabs.vsix -p "$OVSX_PAT"
+        run: npx --yes ovsx publish session-shelf.vsix -p "$OVSX_PAT"

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * Claude Code Tabs — attention SET hook.
+ * Session Shelf — attention SET hook.
  *
  * Registered by the extension on:
  *   - PreToolUse  (matcher: AskUserQuestion|ExitPlanMode)  → Claude is asking you
@@ -32,7 +32,7 @@ process.stdin.on('end', () => {
     if (!sid) {
       return;
     }
-    const dir = path.join(os.homedir(), '.claude', 'hooks', 'claude-tabs', 'attention.d');
+    const dir = path.join(os.homedir(), '.claude', 'hooks', 'session-shelf', 'attention.d');
     fs.mkdirSync(dir, { recursive: true });
     // Overwrite (not append) so the file's mtime tracks the latest attention event.
     fs.writeFileSync(path.join(dir, sid), String(j.cwd || ''));

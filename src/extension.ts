@@ -19,7 +19,7 @@ import { debounce } from './util/async';
 
 export function activate(context: vscode.ExtensionContext): void {
   const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-  const cfg = () => vscode.workspace.getConfiguration('claudeSessionTabs');
+  const cfg = () => vscode.workspace.getConfiguration('sessionShelf');
   const override = cfg().get<string>('projectDirectory')?.trim() || undefined;
 
   const store = new SessionStore(cwd, override);
@@ -33,11 +33,11 @@ export function activate(context: vscode.ExtensionContext): void {
     showCollapseAll: true,
     canSelectMany: true,
   };
-  // Two homes, one data source: a standalone "Claude Code Tabs" container in the
+  // Two homes, one data source: a standalone "Session Shelf" container in the
   // Activity Bar, plus a mirror inside the Claude Code sidebar (shown while the
   // Claude Code extension is active). Both share the provider, so they stay in sync.
-  const primaryView = vscode.window.createTreeView('claudeSessionTabs', treeOptions);
-  const inlineView = vscode.window.createTreeView('claudeSessionTabsInline', treeOptions);
+  const primaryView = vscode.window.createTreeView('sessionShelf', treeOptions);
+  const inlineView = vscode.window.createTreeView('sessionShelfInline', treeOptions);
   context.subscriptions.push(primaryView, inlineView, provider, groups);
 
   for (const v of [primaryView, inlineView]) {
@@ -59,7 +59,7 @@ export function activate(context: vscode.ExtensionContext): void {
   // sessions — the hub for running different branches in parallel. Read-only for
   // other worktrees (clicking one offers to open it in a new window).
   const worktrees = new WorktreeTreeProvider(cwd);
-  const worktreeView = vscode.window.createTreeView<WtNode>('claudeSessionTabsWorktrees', {
+  const worktreeView = vscode.window.createTreeView<WtNode>('sessionShelfWorktrees', {
     treeDataProvider: worktrees,
   });
   context.subscriptions.push(worktrees, worktreeView);
@@ -181,7 +181,7 @@ export function activate(context: vscode.ExtensionContext): void {
   };
   const syncAttention = (): void => {
     const installed = attention.isInstalled();
-    void vscode.commands.executeCommand('setContext', 'claudeSessionTabs.attentionInstalled', installed);
+    void vscode.commands.executeCommand('setContext', 'sessionShelf.attentionInstalled', installed);
     if (installed && !attentionWatcher && !disposed) {
       attention.ensureDir();
       const w = vscode.workspace.createFileSystemWatcher(
@@ -215,7 +215,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.window.tabGroups.onDidChangeTabGroups(debouncedRebuild),
     groups.onDidChange(() => void rebuild()),
     vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration('claudeSessionTabs')) {
+      if (e.affectsConfiguration('sessionShelf')) {
         provider.configure(cfg().get('maxRecentSessions', 25), cfg().get('showClosedSessions', true));
         void rebuild();
       }
@@ -268,7 +268,7 @@ export function activate(context: vscode.ExtensionContext): void {
   // Sets the installed context key and, if hooks are already installed, starts
   // the attention watcher and does an initial scan.
   syncAttention();
-  void vscode.commands.executeCommand('setContext', 'claudeSessionTabs.branchMode', groups.isGroupByBranch());
+  void vscode.commands.executeCommand('setContext', 'sessionShelf.branchMode', groups.isGroupByBranch());
 
   // Phase 3: if this window was opened by a "resume in worktree" / "new branch"
   // hand-off, consume it and act once Claude Code has had a moment to activate.

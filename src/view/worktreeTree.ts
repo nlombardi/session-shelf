@@ -104,7 +104,7 @@ export class WorktreeTreeProvider implements vscode.TreeDataProvider<WtNode>, vs
 
     if (usable.length <= 1) {
       this.message = new WtMessageNode('New branch session…', 'add', {
-        command: 'claudeSessionTabs.newBranchSession',
+        command: 'sessionShelf.newBranchSession',
         title: 'New branch session',
       });
     }
@@ -178,7 +178,7 @@ export class WorktreeTreeProvider implements vscode.TreeDataProvider<WtNode>, vs
       : new vscode.ThemeIcon('circle-outline');
     item.contextValue = node.isCurrent ? 'wtsession current' : 'wtsession other';
     item.command = {
-      command: 'claudeSessionTabs.openWorktreeSession',
+      command: 'sessionShelf.openWorktreeSession',
       title: 'Open',
       arguments: [node],
     };

@@ -12,7 +12,7 @@ import {
 } from '../util/format';
 import { makeSessionTreeItem, statusOf } from './sessionItem';
 
-const DND_MIME = 'application/vnd.claude-session-tabs';
+const DND_MIME = 'application/vnd.session-shelf';
 /** Key for the implicit Ungrouped bucket in per-group persisted state (show-inactive). */
 export const UNGROUPED_ID = '__ungrouped__';
 
@@ -206,6 +206,21 @@ export class SessionTreeProvider
     const live = this.liveTabs();
     const used = new Set<LiveTab>();
     const entries: SessionEntry[] = [];
+    // Provisional `live:` ids from the last build, keyed by their (stable) Tab object, so
+    // a group/pin set on a brand-new tab follows it once its id changes (real transcript
+    // id, or a new provisional id after the tab's title updates).
+    const provisional = new Map<vscode.Tab, string>();
+    for (const e of this.entries) {
+      if (e.live && e.meta.id.startsWith('live:')) {
+        provisional.set(e.live.tab, e.meta.id);
+      }
+    }
+    const carryOver = async (lt: LiveTab, id: string): Promise<void> => {
+      const prev = provisional.get(lt.tab);
+      if (prev && prev !== id) {
+        await this.groups.migrate(prev, id);
+      }
+    };
 
     for (const meta of metas) {
       const label = claudeTruncateLabel(meta.title);
@@ -218,6 +233,7 @@ export class SessionTreeProvider
       }
       if (match) {
         used.add(match);
+        await carryOver(match, meta.id);
       }
       entries.push({
         meta,
@@ -239,6 +255,7 @@ export class SessionTreeProvider
       }
       const n = synthIndex++;
       const id = `live:${lt.viewColumn ?? 0}:${lt.label}:${n}`;
+      await carryOver(lt, id);
       entries.push({
         meta: {
           id,
@@ -465,7 +482,7 @@ export class SessionTreeProvider
     }
     md.appendMarkdown(`$(history) ${formatRelative(s.mtimeMs)}`);
     item.tooltip = md;
-    item.command = { command: 'claudeSessionTabs.openSubagent', title: 'Open Subagent', arguments: [node] };
+    item.command = { command: 'sessionShelf.openSubagent', title: 'Open Subagent', arguments: [node] };
     return item;
   }
 
@@ -542,7 +559,7 @@ export class SessionTreeProvider
       // Expandable only when there's a live subagent to show.
       collapsible: e.subagents.some(isSubagentRunning),
       command: e.meta.filePath
-        ? { command: 'claudeSessionTabs.openSession', title: 'Open', arguments: [node] }
+        ? { command: 'sessionShelf.openSession', title: 'Open', arguments: [node] }
         : undefined,
     });
   }

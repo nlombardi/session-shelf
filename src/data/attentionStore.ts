@@ -5,14 +5,14 @@ import * as vscode from 'vscode';
 
 const CLAUDE_DIR = path.join(os.homedir(), '.claude');
 const HOOKS_DIR = path.join(CLAUDE_DIR, 'hooks');
-const TABS_DIR = path.join(HOOKS_DIR, 'claude-tabs');
+const TABS_DIR = path.join(HOOKS_DIR, 'session-shelf');
 const ATTENTION_DIR = path.join(TABS_DIR, 'attention.d');
 const SETTINGS_FILE = path.join(CLAUDE_DIR, 'settings.json');
 const SET_SCRIPT = path.join(TABS_DIR, 'attention-set.js');
 const CLEAR_SCRIPT = path.join(TABS_DIR, 'attention-clear.js');
 
 /** Every hook command we write contains this token, so we can find/strip ours. */
-const MARKER = 'claude-tabs';
+const MARKER = 'session-shelf';
 /** A marker older than this is treated as abandoned and pruned (safety net). */
 const STALE_MS = 24 * 60 * 60 * 1000;
 
@@ -126,7 +126,7 @@ export class AttentionStore {
   describeInstall(): string {
     const lines = specs().map((s) => `• ${s.event}${s.matcher ? ` (${s.matcher})` : ''} — ${s.purpose}`);
     return (
-      `Claude Code Tabs will add these hooks to ${SETTINGS_FILE}:\n\n` +
+      `Session Shelf will add these hooks to ${SETTINGS_FILE}:\n\n` +
       lines.join('\n') +
       `\n\nHelper scripts are copied to ${TABS_DIR}. Nothing is sent anywhere — the hooks only ` +
       `touch a local marker folder the extension watches. You can undo this any time with ` +

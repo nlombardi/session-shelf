@@ -3,6 +3,25 @@
 All notable changes to **Claude Code Tabs** are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] — 2026-11-12
+
+First release as **Session Shelf** (`datasense.session-shelf`), forked from
+Claude Code Tabs 0.2.1.
+
+### Changed
+- **Closed sessions stay in their group.** User groups now show their closed
+  sessions by default, so closing a tab no longer makes it vanish from the group;
+  click it to reopen. The 👁 eye still hides them per group. Ungrouped and branch
+  buckets keep the open-only default.
+- Renamed: display name, command/setting ids (`sessionShelf.*`), and the hook marker
+  folder (`~/.claude/hooks/session-shelf/`), so it can be installed alongside the
+  original without clashing.
+
+### Fixed
+- **Grouping a brand-new session no longer gets lost on close.** A tab grouped or
+  pinned before Claude wrote its transcript was stored under a temporary id that
+  vanished with the tab; it now carries over to the real session id.
+
 ## [0.2.1] — 2026-07-07
 
 ### Added

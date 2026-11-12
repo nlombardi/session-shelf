@@ -1,18 +1,16 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/yousefkadah/claude-session-tabs/main/resources/icon.png" width="96" alt="Claude Code Tabs" />
+<img src="https://raw.githubusercontent.com/GITHUB_OWNER/session-shelf/main/resources/icon.png" width="96" alt="Session Shelf" />
 
-# Claude Code Tabs
+# Session Shelf
 
 **Chrome-style tab management for the [Claude Code](https://marketplace.visualstudio.com/items?itemName=anthropic.claude-code) VS Code extension** — named + colored **groups**, a searchable session list, **pinning**, and a **rich hover preview** for every conversation.
 
-[![VS Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/yousefkadah.claude-session-tabs?color=1f8ceb&label=Marketplace&logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=yousefkadah.claude-session-tabs)
-[![Installs](https://img.shields.io/visual-studio-marketplace/i/yousefkadah.claude-session-tabs?color=1f8ceb)](https://marketplace.visualstudio.com/items?itemName=yousefkadah.claude-session-tabs)
-[![Rating](https://img.shields.io/visual-studio-marketplace/r/yousefkadah.claude-session-tabs?color=1f8ceb)](https://marketplace.visualstudio.com/items?itemName=yousefkadah.claude-session-tabs)
-[![CI](https://github.com/yousefkadah/claude-session-tabs/actions/workflows/ci.yml/badge.svg)](https://github.com/yousefkadah/claude-session-tabs/actions/workflows/ci.yml)
+[![VS Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/datasense.session-shelf?color=1f8ceb&label=Marketplace&logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=datasense.session-shelf)
+[![CI](https://github.com/GITHUB_OWNER/session-shelf/actions/workflows/ci.yml/badge.svg)](https://github.com/GITHUB_OWNER/session-shelf/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-<img src="https://raw.githubusercontent.com/yousefkadah/claude-session-tabs/main/media/screenshots/sidebar.png" width="460" alt="Grouped Claude sessions with status dots" />
+<img src="https://raw.githubusercontent.com/GITHUB_OWNER/session-shelf/main/media/screenshots/sidebar.png" width="460" alt="Grouped Claude sessions with status dots" />
 
 </div>
 
@@ -24,7 +22,8 @@
 ## ✨ Features
 
 - **🗂️ Groups** — create named, colored groups and drag sessions between them, or **start a new session straight into a group** with the group's `+` button. They collapse and persist per workspace, just like Chrome tab groups.
-- **🫥 Active by default, reveal on demand** — every group (and **Ungrouped**) shows only its **active/open** (and pinned) sessions, with a `N hidden` count. Hit the **👁 eye** on the group to reveal its closed sessions, and again to collapse back. The choice sticks per group.
+- **📚 Closing a tab doesn't lose it** — a session you put in a group **stays in that group after you close its tab**, shown with an outline dot. Click it to reopen the conversation right where it left off. Groups are your saved shelves of work, per workspace. Want a tidier view? Hit the **👁 eye** on a group to show only its open sessions (with an `N hidden` count); the choice sticks per group. **Ungrouped** shows open sessions by default, with recent closed ones one click away.
+- **🧷 New sessions keep their group** — drag a brand-new conversation into a group before Claude has saved anything and it still keeps its place once it gets a real session id.
 - **⎇ Branches & worktrees** — **group your sessions by git branch** with one toggle, or open the **Branches** view to see every **git worktree** of the repo with its sessions. Run different branches in parallel, jump into another worktree's session (it opens in a new window), or spin up a **New Branch Session** that creates a worktree and starts Claude there. See [Branches & worktrees](#-branches--worktrees).
 - **🔔 Waiting-for-you alerts** — when Claude's last turn was an unanswered **question or plan** (`AskUserQuestion` / `ExitPlanMode`), that session floats to the top with a **bell + count badge** on the icon. A real transcript signal — no manual flagging.
 - **⚡ Real-time attention (opt-in)** — enable **Claude Code hooks** from the view's **⋯** menu and the bell lights the *instant* Claude asks, plans, or needs permission — no transcript lag — with an optional **sound + OS notification** so you don't miss it. It clears the moment you reply, is fully reversible, and stays 100% local (a marker folder the extension watches). See [Real-time attention](#-real-time-attention-optional).
@@ -41,34 +40,34 @@
 ### Grouped sessions in the Claude Code sidebar
 Colored groups, live status dots, and per‑workspace organization — nested right inside Claude Code's own sidebar.
 
-<img src="https://raw.githubusercontent.com/yousefkadah/claude-session-tabs/main/media/screenshots/sidebar.png" width="520" alt="Session Tabs tree with a colored group" />
+<img src="https://raw.githubusercontent.com/GITHUB_OWNER/session-shelf/main/media/screenshots/sidebar.png" width="520" alt="Session Tabs tree with a colored group" />
 
 ### Rich hover preview
 Hover any session for an at‑a‑glance card of the conversation.
 
-<img src="https://raw.githubusercontent.com/yousefkadah/claude-session-tabs/main/media/screenshots/hover.png" width="560" alt="Hover preview card" />
+<img src="https://raw.githubusercontent.com/GITHUB_OWNER/session-shelf/main/media/screenshots/hover.png" width="560" alt="Hover preview card" />
 
 ### Horizontal tab strip (bottom panel)
-Prefer a browser‑like strip? The **Claude Code Tabs** panel gives grouped tab chips with the same previews and drag‑to‑group.
+Prefer a browser‑like strip? The **Session Shelf** panel gives grouped tab chips with the same previews and drag‑to‑group.
 
-<img src="https://raw.githubusercontent.com/yousefkadah/claude-session-tabs/main/media/screenshots/strip.png" width="620" alt="Horizontal session strip" />
+<img src="https://raw.githubusercontent.com/GITHUB_OWNER/session-shelf/main/media/screenshots/strip.png" width="620" alt="Horizontal session strip" />
 
 ## 🚀 Install
 
-1. Open **Extensions** in VS Code (`⇧⌘X` / `Ctrl+Shift+X`) and search **“Claude Code Tabs”**, or run:
+1. Open **Extensions** in VS Code (`⇧⌘X` / `Ctrl+Shift+X`) and search **“Session Shelf”**, or run:
    ```
-   ext install yousefkadah.claude-session-tabs
+   ext install datasense.session-shelf
    ```
 2. Make sure the **[Claude Code](https://marketplace.visualstudio.com/items?itemName=anthropic.claude-code)** extension is installed and you've opened at least one conversation.
-3. Open the **Claude Code Tabs** icon in the Activity Bar (or find **Session Tabs** inside the Claude Code sidebar). For the horizontal strip, open the bottom panel (`⌘J` / `Ctrl+J`) → **Claude Code Tabs**.
+3. Open the **Session Shelf** icon in the Activity Bar (or find **Session Tabs** inside the Claude Code sidebar). For the horizontal strip, open the bottom panel (`⌘J` / `Ctrl+J`) → **Session Shelf**.
 
 **Requirements:** VS Code `^1.84.0` (or a compatible fork) and the Anthropic **Claude Code** extension.
 
 ## 🧭 Where it lives
 
-- **Claude Code Tabs** (Activity Bar) — the dedicated **Sessions** tree, always available.
+- **Session Shelf** (Activity Bar) — the dedicated **Sessions** tree, always available.
 - **Session Tabs** (Claude Code sidebar) — the same tree, mirrored inside Claude Code's own sidebar while it's active.
-- **Claude Code Tabs** (bottom **panel**, `⌘J` / `Ctrl+J`) — the horizontal Chrome‑style strip.
+- **Session Shelf** (bottom **panel**, `⌘J` / `Ctrl+J`) — the horizontal Chrome‑style strip.
 
 All three share one data source and stay in sync — use whichever fits your flow.
 
@@ -84,7 +83,7 @@ By default the bell reads the transcript, which Claude Code doesn't flush in rea
 | `Notification` (permission prompt) | Claude needs permission | 🔔 bell on |
 | `UserPromptSubmit` | you reply | bell off |
 
-Each hook just writes/removes a marker file under `~/.claude/hooks/claude-tabs/`; the extension watches that folder. **Nothing leaves your machine.** It self-heals — a stale marker is ignored once the transcript catches up — and **Disable Real-time Attention** removes the hooks and scripts, restoring your `settings.json`. Start a new Claude Code session (or reload) after enabling so it picks up the hooks.
+Each hook just writes/removes a marker file under `~/.claude/hooks/session-shelf/`; the extension watches that folder. **Nothing leaves your machine.** It self-heals — a stale marker is ignored once the transcript catches up — and **Disable Real-time Attention** removes the hooks and scripts, restoring your `settings.json`. Start a new Claude Code session (or reload) after enabling so it picks up the hooks.
 
 **Sound & notification.** When a session starts waiting, the extension also plays a sound and shows a notification: a **native OS banner** when VS Code is in the background, or an **in-app toast with a Reveal button** when it's focused. It fires once per "needs you" transition, for the window that owns the session. Tune it with `claudeSessionTabs.attentionSound`, `claudeSessionTabs.attentionNotification`, and `claudeSessionTabs.attentionSoundName` (macOS sound). Windows/Linux use the system notification sound.
 
@@ -138,4 +137,6 @@ Press **F5** to launch an Extension Development Host. Package a `.vsix` with `np
 
 ## 📄 License
 
-[MIT](LICENSE) © yousefkadah
+[MIT](LICENSE) © Data Sense.
+
+Session Shelf is a fork of [Claude Code Tabs](https://github.com/yousefkadah/claude-session-tabs) by yousefkadah (MIT), extended so grouped sessions survive closing their tabs. Not affiliated with or endorsed by Anthropic.

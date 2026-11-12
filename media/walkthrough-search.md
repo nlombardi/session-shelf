@@ -10,6 +10,6 @@
   💬 help me move from pinecone to…
 ```
 
-Run **Claude Code Tabs: Search Sessions…** to fuzzy-find any conversation by title
+Run **Session Shelf: Search Sessions…** to fuzzy-find any conversation by title
 or last prompt, then jump straight to it. **Pin** the ones you return to and
 they float to the top.

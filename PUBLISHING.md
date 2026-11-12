@@ -1,6 +1,6 @@
 # Publishing
 
-This extension publishes as `yousefkadah.claude-session-tabs`. CI and release
+This extension publishes as `datasense.session-shelf`. CI and release
 are automated via GitHub Actions ([`ci.yml`](.github/workflows/ci.yml),
 [`release.yml`](.github/workflows/release.yml)); the one-time human setup is the
 Marketplace publisher + token below.
@@ -16,7 +16,7 @@ Marketplace publisher + token below.
    - Copy the token (shown once).
 3. **Create the publisher** — go to
    <https://marketplace.visualstudio.com/manage> and create a publisher whose
-   **ID is `yousefkadah`** (must match `publisher` in [package.json](package.json);
+   **ID is `datasense`** (must match `publisher` in [package.json](package.json);
    change both if you use a different id).
 
 ## Publish
@@ -39,7 +39,7 @@ Marketplace publisher + token below.
 ```bash
 npm ci
 npm run typecheck && npm test
-npx @vscode/vsce login yousefkadah      # paste the PAT once
+npx @vscode/vsce login datasense      # paste the PAT once
 npx @vscode/vsce publish --no-dependencies
 ```
 

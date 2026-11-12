@@ -41,13 +41,13 @@ export function registerCommands(context: vscode.ExtensionContext, services: Ext
     context.subscriptions.push(vscode.commands.registerCommand(id, fn as (...args: unknown[]) => unknown));
   };
 
-  reg('claudeSessionTabs.refresh', () => {
+  reg('sessionShelf.refresh', () => {
     store.invalidateAll();
     rebuild();
     refreshWorktrees();
   });
 
-  reg('claudeSessionTabs.openSession', async (node?: TreeNode) => {
+  reg('sessionShelf.openSession', async (node?: TreeNode) => {
     if (node?.kind !== 'session') {
       return;
     }
@@ -60,13 +60,13 @@ export function registerCommands(context: vscode.ExtensionContext, services: Ext
     await openById(node.entry.meta.id, column);
   });
 
-  reg('claudeSessionTabs.closeTab', async (node?: TreeNode) => {
+  reg('sessionShelf.closeTab', async (node?: TreeNode) => {
     if (node?.kind === 'session' && node.entry.live) {
       await vscode.window.tabGroups.close(node.entry.live.tab);
     }
   });
 
-  reg('claudeSessionTabs.openSubagent', async (node?: TreeNode) => {
+  reg('sessionShelf.openSubagent', async (node?: TreeNode) => {
     if (node?.kind === 'subagent') {
       await showSubagentPanel(node.sub);
     }
@@ -74,7 +74,7 @@ export function registerCommands(context: vscode.ExtensionContext, services: Ext
 
   // Open a session from the Worktrees view. In this worktree → open normally.
   // In another worktree → open that folder in a new window and resume it there.
-  reg('claudeSessionTabs.openWorktreeSession', async (node?: WtNode) => {
+  reg('sessionShelf.openWorktreeSession', async (node?: WtNode) => {
     if (!node || node.kind !== 'wtsession') {
       return;
     }
@@ -99,7 +99,7 @@ export function registerCommands(context: vscode.ExtensionContext, services: Ext
   });
 
   // Create a git worktree for a branch and start a fresh Claude session in it.
-  reg('claudeSessionTabs.newBranchSession', async () => {
+  reg('sessionShelf.newBranchSession', async () => {
     const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     if (!cwd) {
       void vscode.window.showInformationMessage('Open a folder first.');
@@ -155,11 +155,11 @@ export function registerCommands(context: vscode.ExtensionContext, services: Ext
     });
   });
 
-  reg('claudeSessionTabs.newGroup', async () => {
+  reg('sessionShelf.newGroup', async () => {
     await createGroupInteractive(groups);
   });
 
-  reg('claudeSessionTabs.newSessionInGroup', async (node?: TreeNode) => {
+  reg('sessionShelf.newSessionInGroup', async (node?: TreeNode) => {
     if (node?.kind !== 'group' || !node.group) {
       return;
     }
@@ -169,7 +169,7 @@ export function registerCommands(context: vscode.ExtensionContext, services: Ext
     void vscode.window.showInformationMessage(`The next new session will be added to "${node.group.name}".`);
   });
 
-  reg('claudeSessionTabs.renameGroup', async (node?: TreeNode) => {
+  reg('sessionShelf.renameGroup', async (node?: TreeNode) => {
     if (node?.kind !== 'group' || !node.group) {
       return;
     }
@@ -179,7 +179,7 @@ export function registerCommands(context: vscode.ExtensionContext, services: Ext
     }
   });
 
-  reg('claudeSessionTabs.recolorGroup', async (node?: TreeNode) => {
+  reg('sessionShelf.recolorGroup', async (node?: TreeNode) => {
     if (node?.kind !== 'group' || !node.group) {
       return;
     }
@@ -189,7 +189,7 @@ export function registerCommands(context: vscode.ExtensionContext, services: Ext
     }
   });
 
-  reg('claudeSessionTabs.deleteGroup', async (node?: TreeNode) => {
+  reg('sessionShelf.deleteGroup', async (node?: TreeNode) => {
     if (node?.kind !== 'group' || !node.group) {
       return;
     }
@@ -203,7 +203,7 @@ export function registerCommands(context: vscode.ExtensionContext, services: Ext
     }
   });
 
-  reg('claudeSessionTabs.assignToGroup', async (node?: TreeNode) => {
+  reg('sessionShelf.assignToGroup', async (node?: TreeNode) => {
     if (node?.kind !== 'session') {
       return;
     }
@@ -213,13 +213,13 @@ export function registerCommands(context: vscode.ExtensionContext, services: Ext
     }
   });
 
-  reg('claudeSessionTabs.removeFromGroup', async (node?: TreeNode) => {
+  reg('sessionShelf.removeFromGroup', async (node?: TreeNode) => {
     if (node?.kind === 'session') {
       await groups.assign(node.entry.meta.id, null);
     }
   });
 
-  reg('claudeSessionTabs.togglePin', async (node?: TreeNode) => {
+  reg('sessionShelf.togglePin', async (node?: TreeNode) => {
     if (node?.kind === 'session') {
       await groups.togglePin(node.entry.meta.id);
     }
@@ -234,20 +234,20 @@ export function registerCommands(context: vscode.ExtensionContext, services: Ext
     }
     await groups.toggleShowInactive(node.key);
   };
-  reg('claudeSessionTabs.showInactive', toggleInactive);
-  reg('claudeSessionTabs.hideInactive', toggleInactive);
+  reg('sessionShelf.showInactive', toggleInactive);
+  reg('sessionShelf.hideInactive', toggleInactive);
 
   // Toggle between grouping by user groups and grouping by git branch.
-  reg('claudeSessionTabs.groupByBranch', async () => {
+  reg('sessionShelf.groupByBranch', async () => {
     await groups.setGroupByBranch(true);
-    void vscode.commands.executeCommand('setContext', 'claudeSessionTabs.branchMode', true);
+    void vscode.commands.executeCommand('setContext', 'sessionShelf.branchMode', true);
   });
-  reg('claudeSessionTabs.groupByGroup', async () => {
+  reg('sessionShelf.groupByGroup', async () => {
     await groups.setGroupByBranch(false);
-    void vscode.commands.executeCommand('setContext', 'claudeSessionTabs.branchMode', false);
+    void vscode.commands.executeCommand('setContext', 'sessionShelf.branchMode', false);
   });
 
-  reg('claudeSessionTabs.enableAttention', async () => {
+  reg('sessionShelf.enableAttention', async () => {
     const proceed = await vscode.window.showInformationMessage(
       attention.describeInstall(),
       { modal: true },
@@ -268,13 +268,13 @@ export function registerCommands(context: vscode.ExtensionContext, services: Ext
     );
   });
 
-  reg('claudeSessionTabs.disableAttention', async () => {
+  reg('sessionShelf.disableAttention', async () => {
     await attention.uninstall();
     syncAttention();
     void vscode.window.showInformationMessage('Real-time attention disabled — hooks removed from ~/.claude.');
   });
 
-  reg('claudeSessionTabs.search', async () => {
+  reg('sessionShelf.search', async () => {
     const metas = await store.list();
     type Item = vscode.QuickPickItem & { id: string };
     const items: Item[] = metas.map((m) => ({
@@ -337,7 +337,7 @@ export function createStripHandlers(services: ExtensionServices): StripHandlers 
           void createGroupInteractive(groups);
           break;
         case 'search':
-          void vscode.commands.executeCommand('claudeSessionTabs.search');
+          void vscode.commands.executeCommand('sessionShelf.search');
           break;
         case 'refresh':
           store.invalidateAll();
