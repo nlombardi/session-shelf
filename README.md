@@ -56,6 +56,10 @@ All data is read from your local `~/.claude` transcripts. Nothing is sent anywhe
 
 <img src="https://raw.githubusercontent.com/nlombardi/session-shelf/main/media/screenshots/sidebar.png" width="300" alt="Session tree with a colored group" />
 
+**Group actions: switch to a group, or open or close all of its sessions**
+
+<img src="https://raw.githubusercontent.com/nlombardi/session-shelf/main/media/screenshots/group-actions.png" width="384" alt="Group context menu with Switch to Group, Open All Sessions in Group and Close All Tabs in Group" />
+
 **Hover preview**
 
 <img src="https://raw.githubusercontent.com/nlombardi/session-shelf/main/media/screenshots/hover.png" width="462" alt="Hover preview card" />
