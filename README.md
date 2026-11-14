@@ -122,6 +122,7 @@ When a session starts waiting, the extension can also play a sound and show a no
 
 - The views appear in the sidebar and bottom panel; the API cannot render them on the native editor tab bar.
 - The Tab API does not expose a tab's session ID, so open tabs are matched to sessions by title. Two sessions with identical truncated titles can occasionally be matched in the wrong order until one of them updates.
+- In a window with no folder open, sessions are read from the home directory (where Claude Code stores them), but Real-time Attention alerts do not fire. Open a folder to enable them and to keep each project's groups separate.
 - The embedded sidebar view depends on Claude Code's view container. If a future Claude Code release renames it, a small update may be required.
 
 ## Development
