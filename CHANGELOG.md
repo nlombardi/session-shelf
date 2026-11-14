@@ -3,6 +3,14 @@
 All notable changes to **Claude Code Tabs** are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.1] — 2026-11-14
+
+### Fixed
+- **Sessions in a window with no folder open vanished when their tab closed.** With no
+  workspace folder, the extension found no transcripts at all, so every session existed
+  only as a live tab. It now falls back to the home directory, where Claude Code writes
+  transcripts for folderless windows.
+
 ## [0.3.0] — 2026-11-12
 
 First release as **Session Shelf** (`datasense.session-shelf`), forked from

@@ -20,7 +20,16 @@ export class SessionStore {
   private projectDir: string | undefined;
   private resolving: Promise<string | undefined> | undefined;
 
-  constructor(private cwd: string | undefined, private overrideDir?: string) {}
+  private cwd: string;
+
+  /**
+   * `cwd` is the workspace folder. With no folder open, Claude Code runs in the home
+   * directory and writes its transcripts there, so fall back to it — otherwise every
+   * session in a folderless window is invisible once its tab closes.
+   */
+  constructor(cwd: string | undefined, private overrideDir?: string) {
+    this.cwd = cwd ?? os.homedir();
+  }
 
   get directory(): string | undefined {
     return this.projectDir;

@@ -5,6 +5,8 @@
  *
  * Run with: npm test
  */
+import * as os from 'os';
+import * as path from 'path';
 import { SessionStore } from '../src/data/sessionStore';
 import { claudeTruncateLabel, formatRelative, formatTokens, normalizeLabel, truncate } from '../src/util/format';
 
@@ -39,6 +41,16 @@ async function main(): Promise<void> {
   const store = new SessionStore(cwd);
   const dir = await store.resolveDir();
   check('resolveDir found a directory', !!dir, dir);
+
+  // A window with no folder open: Claude Code runs in the home directory, so its
+  // transcripts live under the home directory's project slug.
+  const noFolderDir = await new SessionStore(undefined).resolveDir();
+  const homeSlug = os.homedir().replace(/[^A-Za-z0-9]/g, '-');
+  check(
+    'no-folder window resolves to the home-directory project',
+    noFolderDir === path.join(os.homedir(), '.claude', 'projects', homeSlug),
+    noFolderDir,
+  );
 
   const sessions = await store.list();
 
