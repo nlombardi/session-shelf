@@ -18,6 +18,8 @@ export interface ContentHit {
   role: MessageRole;
   /** A single-line excerpt around the first match. */
   snippet: string;
+  /** Text to look for in the open conversation to land on the first matching message. */
+  findText: string;
 }
 
 interface Message {
@@ -66,6 +68,20 @@ export function makeSnippet(text: string, term: string, before = 40, after = 100
     }
   }
   return (start > 0 ? '…' : '') + flat.slice(start, end) + (end < flat.length ? '…' : '');
+}
+
+/**
+ * What to type into the chat's find bar to reach a message that matched `query`: the
+ * whole query when the message contains it as a phrase, otherwise the longest term
+ * (terms can be far apart in the message, and the find bar matches one literal string).
+ */
+export function findTextFor(text: string, query: string): string {
+  const terms = parseQuery(query);
+  const phrase = terms.join(' ');
+  if (terms.length > 1 && text.replace(/\s+/g, ' ').toLowerCase().includes(phrase)) {
+    return phrase;
+  }
+  return terms.reduce((best, t) => (t.length > best.length ? t : best), '');
 }
 
 /** Extract the human-visible messages (your prompts and Claude's replies) from a transcript. */
@@ -136,7 +152,13 @@ export class ContentIndex {
         }
       }
       if (first) {
-        hits.push({ id: d.id, matches, role: first.role, snippet: makeSnippet(first.text, terms[0]) });
+        hits.push({
+          id: d.id,
+          matches,
+          role: first.role,
+          snippet: makeSnippet(first.text, terms[0]),
+          findText: findTextFor(first.text, query),
+        });
       }
     }
     return hits;

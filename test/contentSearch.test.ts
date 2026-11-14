@@ -5,7 +5,7 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { ContentIndex, extractMessages, makeSnippet, parseQuery } from '../src/data/contentSearch';
+import { ContentIndex, extractMessages, findTextFor, makeSnippet, parseQuery } from '../src/data/contentSearch';
 
 let failures = 0;
 function check(name: string, cond: boolean, extra?: string): void {
@@ -28,6 +28,9 @@ async function main(): Promise<void> {
   check('snippet is elided on both sides', snip.startsWith('…') && snip.endsWith('…'));
   check('snippet stays short', snip.length < 160, String(snip.length));
   check('snippet collapses newlines', !makeSnippet('a\n\nb auth', 'auth').includes('\n'));
+  check('findText uses the whole phrase when present', findTextFor('Add the  Auth\nRetry flag', '  auth retry ') === 'auth retry');
+  check('findText falls back to the longest term', findTextFor('retry the auth call', 'auth retry') === 'retry');
+  check('findText single term', findTextFor('fix the auth bug', 'AUTH') === 'auth');
 
   const msgs = extractMessages(
     [
@@ -71,6 +74,7 @@ async function main(): Promise<void> {
     check('terms may appear apart, case-insensitive', hits.length === 1 && hits[0].id === 'a');
     check('counts every matching message', hits[0]?.matches === 2, String(hits[0]?.matches));
     check('reports the first match role', hits[0]?.role === 'user');
+    check('reports text to find in the chat', hits[0]?.findText === 'retry', hits[0]?.findText);
 
     const auth = await index.search(docs, 'auth');
     check('matches across sessions in doc order', auth.map((h) => h.id).join(',') === 'a,b');

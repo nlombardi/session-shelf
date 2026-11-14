@@ -95,7 +95,7 @@ Click **Search** in the view title bar (or run **Session Shelf: Search Sessionsâ
 
 - Every word you type must appear in the same message, in any order and case. `auth retry` finds "retry the auth request".
 - Each result shows how many messages matched and an excerpt of the first one, marked **You** or **Claude**.
-- Selecting a result opens the session.
+- Selecting a title result opens the session. Selecting a conversation result also opens VS Code's find bar in that chat with the matched text, so it scrolls to and highlights the match (press `Enter` for the next one).
 
 Transcripts are read once and cached; later searches only re-read sessions that have changed since.
 
@@ -153,7 +153,7 @@ When a session starts waiting, the extension can also play a sound and show a no
 - The Tab API does not expose a tab's session ID, so open tabs are matched to sessions by title. Two sessions with identical truncated titles can occasionally be matched in the wrong order until one of them updates.
 - In a window with no folder open, sessions are read from the home directory (where Claude Code stores them), but Real-time Attention alerts do not fire. Open a folder to enable them and to keep each project's groups separate.
 - The embedded sidebar view depends on Claude Code's view container. If a future Claude Code release renames it, a small update may be required.
-- Selecting a search result opens the session, but not at the matching message; Claude Code provides no way to jump to a specific message.
+- Claude Code provides no way to scroll to a specific message, so a conversation result is located with the chat's find bar instead. The search text is entered by pasting it, and your clipboard text is restored straight after (a non-text clipboard, such as an image, is replaced). If the words you searched are far apart in the message, the find bar looks for the longest one, which may hit an earlier message first. When Claude Code opens conversations in the sidebar instead of a tab, the session opens without the find step.
 - Group actions are available in the sidebar trees and the Command Palette, not yet in the bottom-panel strip.
 - A session stopped at a permission prompt looks like it is still running a tool, so bulk close leaves it open for up to 30 minutes. With Real-time Attention enabled it is recognized as waiting for you and closes normally.
 

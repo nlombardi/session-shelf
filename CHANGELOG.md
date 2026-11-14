@@ -3,6 +3,13 @@
 All notable changes to **Claude Code Tabs** are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.4.1] — 2026-11-14
+
+### Changed
+- **Search results jump to the match.** Selecting a conversation result opens the
+  session and searches the chat for the matched text with VS Code's find bar, so it
+  scrolls to and highlights the message. Your clipboard text is restored afterwards.
+
 ## [0.4.0] — 2026-11-14
 
 ### Added

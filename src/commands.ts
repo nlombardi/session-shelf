@@ -9,6 +9,7 @@ import { SessionTreeProvider, TreeNode, UNGROUPED_ID } from './view/sessionTree'
 import { WtNode } from './view/worktreeTree';
 import { StripHandlers } from './view/strip/stripView';
 import { showSubagentPanel } from './view/subagent/subagentPanel';
+import { claudeTabs, findInClaudeTab } from './view/findInTab';
 import { formatRelative, truncate } from './util/format';
 import { debounce } from './util/async';
 import { ContentIndex, SearchDoc } from './data/contentSearch';
@@ -284,7 +285,7 @@ export function registerCommands(context: vscode.ExtensionContext, services: Ext
     const metas = await store.list();
     const docs: SearchDoc[] = metas.map((m) => ({ id: m.id, filePath: m.filePath }));
     const metaById = new Map(metas.map((m) => [m.id, m]));
-    type Item = vscode.QuickPickItem & { id?: string };
+    type Item = vscode.QuickPickItem & { id?: string; findText?: string };
     const titleItems: Item[] = metas.map((m) => ({
       label: m.title || 'Claude Code',
       description: formatRelative(m.mtimeMs),
@@ -329,6 +330,7 @@ export function registerCommands(context: vscode.ExtensionContext, services: Ext
           // don't let the quick pick's own filter hide a real match.
           alwaysShow: true,
           id: h.id,
+          findText: h.findText,
         };
       });
       const sep = (label: string): Item => ({ label, kind: vscode.QuickPickItemKind.Separator });
@@ -341,10 +343,10 @@ export function registerCommands(context: vscode.ExtensionContext, services: Ext
 
     qp.onDidChangeValue((v) => runContentSearch(v, ++generation));
     qp.onDidAccept(() => {
-      const id = qp.selectedItems[0]?.id;
+      const item = qp.selectedItems[0];
       qp.hide();
-      if (id) {
-        void openById(id, provider.getEntry(id)?.open ? undefined : provider.getClaudeColumn());
+      if (item?.id) {
+        void openSearchHit(provider, item.id, item.findText);
       }
     });
     qp.onDidHide(() => {
@@ -421,6 +423,9 @@ export function registerCommands(context: vscode.ExtensionContext, services: Ext
 
 /** Search query length at which conversation text is searched, not just titles. */
 const MIN_CONTENT_QUERY = 3;
+
+/** Time a just-opened conversation tab gets to load and draw its messages before find runs. */
+const NEW_TAB_RENDER_MS = 1500;
 
 /** Opening more sessions than this at once asks for confirmation first. */
 const BULK_OPEN_CONFIRM = 6;
@@ -581,6 +586,21 @@ export function createStripHandlers(services: ExtensionServices): StripHandlers 
       }
     },
   };
+}
+
+/**
+ * Open a session picked from search. For a conversation match, search the chat for the
+ * matched text so it scrolls to the message (Claude Code can't be told to scroll there).
+ */
+async function openSearchHit(provider: SessionTreeProvider, id: string, findText?: string): Promise<void> {
+  const entry = provider.getEntry(id);
+  const openTab = entry?.open ? entry.live?.tab : undefined;
+  const before = claudeTabs();
+  await openById(id, entry?.open ? undefined : provider.getClaudeColumn());
+  if (findText) {
+    // An already-open tab is rendered; a newly opened one is any Claude tab that wasn't there.
+    await findInClaudeTab(findText, (t) => t === openTab || !before.has(t), openTab ? 0 : NEW_TAB_RENDER_MS);
+  }
 }
 
 export async function openById(sessionId: string, column?: vscode.ViewColumn): Promise<void> {
