@@ -8,12 +8,12 @@
 	"icon": "resources/icon.png",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/GITHUB_OWNER/session-shelf.git"
+		"url": "https://github.com/nlombardi/session-shelf.git"
 	},
 	"bugs": {
-		"url": "https://github.com/GITHUB_OWNER/session-shelf/issues"
+		"url": "https://github.com/nlombardi/session-shelf/issues"
 	},
-	"homepage": "https://github.com/GITHUB_OWNER/session-shelf#readme",
+	"homepage": "https://github.com/nlombardi/session-shelf#readme",
 	"galleryBanner": {
 		"color": "#22252B",
 		"theme": "dark"

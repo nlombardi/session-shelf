@@ -1,16 +1,16 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/GITHUB_OWNER/session-shelf/main/resources/icon.png" width="96" alt="Session Shelf" />
+<img src="https://raw.githubusercontent.com/nlombardi/session-shelf/main/resources/icon.png" width="96" alt="Session Shelf" />
 
 # Session Shelf
 
 **Chrome-style tab management for the [Claude Code](https://marketplace.visualstudio.com/items?itemName=anthropic.claude-code) VS Code extension** — named + colored **groups**, a searchable session list, **pinning**, and a **rich hover preview** for every conversation.
 
 [![VS Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/datasense.session-shelf?color=1f8ceb&label=Marketplace&logo=visualstudiocode)](https://marketplace.visualstudio.com/items?itemName=datasense.session-shelf)
-[![CI](https://github.com/GITHUB_OWNER/session-shelf/actions/workflows/ci.yml/badge.svg)](https://github.com/GITHUB_OWNER/session-shelf/actions/workflows/ci.yml)
+[![CI](https://github.com/nlombardi/session-shelf/actions/workflows/ci.yml/badge.svg)](https://github.com/nlombardi/session-shelf/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-<img src="https://raw.githubusercontent.com/GITHUB_OWNER/session-shelf/main/media/screenshots/sidebar.png" width="460" alt="Grouped Claude sessions with status dots" />
+<img src="https://raw.githubusercontent.com/nlombardi/session-shelf/main/media/screenshots/sidebar.png" width="460" alt="Grouped Claude sessions with status dots" />
 
 </div>
 
@@ -40,17 +40,17 @@
 ### Grouped sessions in the Claude Code sidebar
 Colored groups, live status dots, and per‑workspace organization — nested right inside Claude Code's own sidebar.
 
-<img src="https://raw.githubusercontent.com/GITHUB_OWNER/session-shelf/main/media/screenshots/sidebar.png" width="520" alt="Session Tabs tree with a colored group" />
+<img src="https://raw.githubusercontent.com/nlombardi/session-shelf/main/media/screenshots/sidebar.png" width="520" alt="Session Tabs tree with a colored group" />
 
 ### Rich hover preview
 Hover any session for an at‑a‑glance card of the conversation.
 
-<img src="https://raw.githubusercontent.com/GITHUB_OWNER/session-shelf/main/media/screenshots/hover.png" width="560" alt="Hover preview card" />
+<img src="https://raw.githubusercontent.com/nlombardi/session-shelf/main/media/screenshots/hover.png" width="560" alt="Hover preview card" />
 
 ### Horizontal tab strip (bottom panel)
 Prefer a browser‑like strip? The **Session Shelf** panel gives grouped tab chips with the same previews and drag‑to‑group.
 
-<img src="https://raw.githubusercontent.com/GITHUB_OWNER/session-shelf/main/media/screenshots/strip.png" width="620" alt="Horizontal session strip" />
+<img src="https://raw.githubusercontent.com/nlombardi/session-shelf/main/media/screenshots/strip.png" width="620" alt="Horizontal session strip" />
 
 ## 🚀 Install
 
