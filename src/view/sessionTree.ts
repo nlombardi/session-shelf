@@ -263,6 +263,8 @@ export class SessionTreeProvider
           title: lt.label || 'Claude Code',
           mtimeMs: Number.MAX_SAFE_INTEGER - n,
           pendingAsk: false,
+          midTurn: false,
+          lastTurnMs: 0,
           messageCount: 0,
           contextTokens: 0,
           outputTokens: 0,
@@ -297,6 +299,19 @@ export class SessionTreeProvider
   /** Look up a computed entry by session id (used by strip message handlers). */
   getEntry(id: string): SessionEntry | undefined {
     return this.entries.find((e) => e.meta.id === id);
+  }
+
+  /**
+   * Every session assigned to `groupId`, ignoring display filters (hidden closed
+   * sessions and the recent-sessions cap), most recent first.
+   */
+  getGroupEntries(groupId: string): SessionEntry[] {
+    return this.entries.filter((e) => e.groupId === groupId);
+  }
+
+  /** Every session that currently has an open Claude tab. */
+  getOpenEntries(): SessionEntry[] {
+    return this.entries.filter((e) => e.open && e.live);
   }
 
   private liveTabs(): LiveTab[] {

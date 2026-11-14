@@ -31,7 +31,8 @@ Session Shelf adds a structured view of every Claude Code session in your worksp
 - **Closed sessions are retained.** Closing a tab leaves the session in its group, marked as closed. Select it to reopen the conversation where it left off. Use the visibility toggle on a group to show only its open sessions when you want a narrower view.
 - **Reliable assignment for new sessions.** A session grouped before Claude Code has written its first transcript keeps its group once it receives a permanent session ID.
 - **Pinning.** Keep frequently used sessions at the top.
-- **Search.** Fuzzy-find any conversation in the workspace by title or last prompt.
+- **Switch between workstreams.** Open every session in a group at once, close a group's tabs, or **Switch to Group** to close the other Claude tabs and bring one group's sessions back.
+- **Search inside conversations.** Find a session by what was said in it, not just its title. Results show the matching line from your prompt or Claude's reply.
 
 ### Visibility
 - **Hover preview.** See the latest messages, git branch, context-token count, message count and last-active time without opening the session.
@@ -82,7 +83,29 @@ All data is read from your local `~/.claude` transcripts. Nothing is sent anywhe
 | Claude Code sidebar: **Session Tabs** | The same tree, shown inside Claude Code's sidebar while it is active. |
 | Bottom panel: **Session Shelf** | A horizontal strip of grouped session chips. |
 
-All three views share one data source and stay in sync. Right-click a session or group for actions such as pin, move to group, and rename, recolor or delete a group. The view title bar provides **Search**, **New Group** and **Refresh**.
+All three views share one data source and stay in sync. Right-click a session for actions such as pin and move to group, or a group to switch to it, open or close all of its sessions, and rename, recolor or delete it. The view title bar provides **Search**, **New Group** and **Refresh**.
+
+## Search
+
+Click **Search** in the view title bar (or run **Session Shelf: Search Sessions…**). Titles filter as you type. From three characters on, the text of every conversation in the workspace is searched as well: your prompts and Claude's replies, but not tool output or Claude's internal reasoning.
+
+- Every word you type must appear in the same message, in any order and case. `auth retry` finds "retry the auth request".
+- Each result shows how many messages matched and an excerpt of the first one, marked **You** or **Claude**.
+- Selecting a result opens the session.
+
+Transcripts are read once and cached; later searches only re-read sessions that have changed since.
+
+## Switching between groups
+
+Right-click a group, or click its inline swap icon, to work with all of its sessions at once. These actions are also in the Command Palette, where they ask which group to use.
+
+| Action | What it does |
+| --- | --- |
+| **Switch to Group** | Closes the Claude tabs that are not in this group, then opens this group's closed sessions. Pinned sessions stay open. |
+| **Open All Sessions in Group** | Opens every closed session in the group, including ones hidden by the group's eye toggle. |
+| **Close All Tabs in Group** | Closes the group's open tabs. The sessions stay in the group, ready to reopen. |
+
+To avoid interrupting Claude, these actions leave open any session where Claude is still working (replying or running a tool), and tell you which ones they left. Sessions waiting for your input are closed normally. Opening more than six sessions at once asks for confirmation first.
 
 ## Real-time attention (optional)
 
@@ -115,6 +138,8 @@ When a session starts waiting, the extension can also play a sound and show a no
 - Session content is read from `~/.claude/projects/<workspace>/*.jsonl` and cached by file modification time, so unchanged sessions are never re-parsed.
 - Sessions are opened or revealed with the Claude Code command `claude-vscode.editor.open`.
 - Groups, assignments and pins are stored in VS Code's per-workspace state.
+- Search reads only the text of user and assistant messages, keeps it in memory for the session, and never writes an index to disk.
+- Whether Claude is still working in a session is judged from the transcript's last message: an unanswered prompt or tool result, or a reply that stopped to run a tool.
 
 **Why a sidebar rather than the editor tab bar?** The VS Code extension API cannot customize editor-tab hovers, color or group individual webview tabs, or modify tabs beyond closing them. Extensions that restyle the tab bar do so by patching VS Code's installation files, which breaks on every update. Session Shelf uses supported APIs only. See [DESIGN.md](DESIGN.md) for the full analysis.
 
@@ -124,13 +149,16 @@ When a session starts waiting, the extension can also play a sound and show a no
 - The Tab API does not expose a tab's session ID, so open tabs are matched to sessions by title. Two sessions with identical truncated titles can occasionally be matched in the wrong order until one of them updates.
 - In a window with no folder open, sessions are read from the home directory (where Claude Code stores them), but Real-time Attention alerts do not fire. Open a folder to enable them and to keep each project's groups separate.
 - The embedded sidebar view depends on Claude Code's view container. If a future Claude Code release renames it, a small update may be required.
+- Selecting a search result opens the session, but not at the matching message; Claude Code provides no way to jump to a specific message.
+- Group actions are available in the sidebar trees and the Command Palette, not yet in the bottom-panel strip.
+- A session stopped at a permission prompt looks like it is still running a tool, so bulk close leaves it open for up to 30 minutes. With Real-time Attention enabled it is recognized as waiting for you and closes normally.
 
 ## Development
 
 ```bash
 npm install
 npm run watch      # or: npm run compile
-npm test           # headless data-layer and group-store tests
+npm test           # headless tests: data layer, group store, search, transcript parsing
 ```
 
 Press **F5** to launch an Extension Development Host. Package with `npx @vscode/vsce package --no-dependencies`. The code is layered `model → data → view → wiring`; see [DESIGN.md](DESIGN.md) for details.

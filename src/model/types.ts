@@ -19,7 +19,14 @@ export interface SessionMeta {
   /** Role of the last user/assistant message — 'assistant' means it's your turn. */
   /** The last turn was Claude asking the user (AskUserQuestion / ExitPlanMode), unanswered. */
   pendingAsk: boolean;
-  /** File modification time in ms since epoch. */
+  /**
+   * Claude's last turn is unfinished: it has a prompt or tool result it hasn't answered,
+   * or its last message stopped for a tool call rather than ending the turn.
+   */
+  midTurn: boolean;
+  /** Timestamp (ms) of the last user/assistant message, or 0 if unknown. */
+  lastTurnMs: number;
+  /** File modification time in ms since epoch. Claude Code also bumps it for bookkeeping records. */
   mtimeMs: number;
   messageCount: number;
   /** Approx current context size from the last assistant usage record. */

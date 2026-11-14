@@ -10,6 +10,10 @@ import { WtNode } from './view/worktreeTree';
 import { StripHandlers } from './view/strip/stripView';
 import { showSubagentPanel } from './view/subagent/subagentPanel';
 import { formatRelative, truncate } from './util/format';
+import { debounce } from './util/async';
+import { ContentIndex, SearchDoc } from './data/contentSearch';
+import { GroupDef, SessionEntry } from './model/types';
+import { needsAction } from './view/sessionItem';
 
 const COLORS: { label: string; id: string }[] = [
   { label: 'Blue', id: 'charts.blue' },
@@ -274,25 +278,254 @@ export function registerCommands(context: vscode.ExtensionContext, services: Ext
     void vscode.window.showInformationMessage('Real-time attention disabled — hooks removed from ~/.claude.');
   });
 
+  // Titles filter as you type; from MIN_CONTENT_QUERY characters on, the text of every
+  // conversation (your prompts and Claude's replies) is searched too.
   reg('sessionShelf.search', async () => {
     const metas = await store.list();
-    type Item = vscode.QuickPickItem & { id: string };
-    const items: Item[] = metas.map((m) => ({
+    const docs: SearchDoc[] = metas.map((m) => ({ id: m.id, filePath: m.filePath }));
+    const metaById = new Map(metas.map((m) => [m.id, m]));
+    type Item = vscode.QuickPickItem & { id?: string };
+    const titleItems: Item[] = metas.map((m) => ({
       label: m.title || 'Claude Code',
       description: formatRelative(m.mtimeMs),
-      detail: m.lastUserText ? '💬 ' + truncate(m.lastUserText, 90) : undefined,
+      detail: m.lastUserText ? '$(comment) ' + truncate(m.lastUserText, 90) : undefined,
       id: m.id,
     }));
-    const pick = await vscode.window.showQuickPick(items, {
-      placeHolder: 'Search Claude sessions',
-      matchOnDescription: true,
-      matchOnDetail: true,
+
+    const qp = vscode.window.createQuickPick<Item>();
+    qp.placeholder = 'Search sessions by title, or type 3+ characters to search inside conversations';
+    qp.matchOnDescription = true;
+    qp.matchOnDetail = true;
+    qp.items = titleItems;
+
+    let closed = false;
+    let generation = 0;
+    // Read transcripts into the index while the user is still typing.
+    void contentIndex.warm(docs, () => closed);
+
+    const runContentSearch = debounce(async (value: string, gen: number) => {
+      const query = value.trim();
+      if (query.length < MIN_CONTENT_QUERY) {
+        qp.busy = false;
+        qp.items = titleItems;
+        return;
+      }
+      qp.busy = true;
+      const stale = (): boolean => closed || gen !== generation;
+      const hits = await contentIndex.search(docs, query, stale);
+      if (stale()) {
+        return;
+      }
+      qp.busy = false;
+      const hitIds = new Set(hits.map((h) => h.id));
+      const contentItems: Item[] = hits.map((h) => {
+        const m = metaById.get(h.id);
+        const count = `${h.matches} matching message${h.matches === 1 ? '' : 's'}`;
+        return {
+          label: m?.title || 'Claude Code',
+          description: m ? `${count} · ${formatRelative(m.mtimeMs)}` : count,
+          detail: `${h.role === 'user' ? '$(account) You' : '$(sparkle) Claude'}: ${h.snippet}`,
+          // The snippet may not contain the query verbatim (terms can be apart), so
+          // don't let the quick pick's own filter hide a real match.
+          alwaysShow: true,
+          id: h.id,
+        };
+      });
+      const sep = (label: string): Item => ({ label, kind: vscode.QuickPickItemKind.Separator });
+      qp.items = [
+        ...(contentItems.length ? [sep('In conversations'), ...contentItems] : [sep('No conversation matches')]),
+        sep('Titles'),
+        ...titleItems.filter((i) => !hitIds.has(i.id as string)),
+      ];
+    }, 200);
+
+    qp.onDidChangeValue((v) => runContentSearch(v, ++generation));
+    qp.onDidAccept(() => {
+      const id = qp.selectedItems[0]?.id;
+      qp.hide();
+      if (id) {
+        void openById(id, provider.getEntry(id)?.open ? undefined : provider.getClaudeColumn());
+      }
     });
-    if (pick) {
-      await openById(pick.id, provider.getEntry(pick.id)?.open ? undefined : provider.getClaudeColumn());
+    qp.onDidHide(() => {
+      closed = true;
+      qp.dispose();
+    });
+    qp.show();
+  });
+
+  // --- Whole-group tab actions ---
+
+  reg('sessionShelf.openGroup', async (node?: TreeNode) => {
+    const g = await resolveGroup(node, groups, 'Open all sessions in group');
+    if (!g) {
+      return;
+    }
+    // Re-read tabs first: VS Code replaces Tab objects when editor groups change.
+    await provider.build();
+    const toOpen = reopenable(provider.getGroupEntries(g.id));
+    if (!toOpen.length) {
+      void vscode.window.showInformationMessage(`Every session in "${g.name}" is already open.`);
+      return;
+    }
+    if (await confirmBulkOpen(toOpen.length)) {
+      await openSessions(provider, toOpen, `Opening "${g.name}"`);
     }
   });
 
+  reg('sessionShelf.closeGroup', async (node?: TreeNode) => {
+    const g = await resolveGroup(node, groups, 'Close all tabs in group');
+    if (!g) {
+      return;
+    }
+    // Re-read tabs first: VS Code replaces Tab objects when editor groups change.
+    await provider.build();
+    const open = provider.getGroupEntries(g.id).filter((e) => e.live);
+    if (!open.length) {
+      void vscode.window.showInformationMessage(`No sessions in "${g.name}" are open.`);
+      return;
+    }
+    const kept = open.filter(isWorking);
+    await closeEntries(open.filter((e) => !isWorking(e)));
+    reportKept(kept);
+  });
+
+  // Close the Claude tabs that aren't in this group, then open the group's sessions.
+  reg('sessionShelf.switchToGroup', async (node?: TreeNode) => {
+    const g = await resolveGroup(node, groups, 'Switch to group');
+    if (!g) {
+      return;
+    }
+    // Re-read tabs first: VS Code replaces Tab objects when editor groups change.
+    await provider.build();
+    const toOpen = reopenable(provider.getGroupEntries(g.id));
+    // Only close tabs that can be reopened from the shelf (they have a transcript),
+    // and leave pinned sessions alone.
+    const others = provider
+      .getOpenEntries()
+      .filter((e) => e.groupId !== g.id && !e.pinned && !!e.meta.filePath);
+    const kept = others.filter(isWorking);
+    const toClose = others.filter((e) => !isWorking(e));
+    if (!toOpen.length && !toClose.length) {
+      reportKept(kept, `Already on "${g.name}".`);
+      return;
+    }
+    if (!(await confirmBulkOpen(toOpen.length))) {
+      return;
+    }
+    await closeEntries(toClose);
+    await openSessions(provider, toOpen, `Switching to "${g.name}"`);
+    reportKept(kept);
+  });
+}
+
+/** Search query length at which conversation text is searched, not just titles. */
+const MIN_CONTENT_QUERY = 3;
+
+/** Opening more sessions than this at once asks for confirmation first. */
+const BULK_OPEN_CONFIRM = 6;
+
+/**
+ * A mid-turn session whose last message is older than this is assumed stalled (crashed,
+ * or abandoned at a permission prompt) rather than working, so bulk close may close it.
+ */
+const STALLED_MS = 30 * 60_000;
+
+const contentIndex = new ContentIndex();
+
+/**
+ * Claude is in the middle of a turn in this session. Bulk close leaves such tabs open,
+ * because closing a Claude tab mid-turn interrupts it. Decided from the transcript's
+ * last message, not the file's mtime: Claude Code also appends bookkeeping records
+ * (cost-state, mode, …) to idle sessions, especially right after they are opened.
+ */
+function isWorking(e: SessionEntry): boolean {
+  const m = e.meta;
+  return !!m.filePath && m.midTurn && !needsAction(e) && Date.now() - m.lastTurnMs < STALLED_MS;
+}
+
+/** Closed sessions that have a transcript, oldest first (so the newest ends up focused). */
+function reopenable(entries: SessionEntry[]): SessionEntry[] {
+  return entries.filter((e) => !e.open && !!e.meta.filePath).sort((a, b) => a.meta.mtimeMs - b.meta.mtimeMs);
+}
+
+/** The group a command applies to: the clicked group, or one picked from a list. */
+async function resolveGroup(
+  node: TreeNode | undefined,
+  groups: GroupStore,
+  placeHolder: string,
+): Promise<GroupDef | undefined> {
+  if (node) {
+    return node.kind === 'group' && node.group ? node.group : undefined;
+  }
+  if (!groups.groups.length) {
+    void vscode.window.showInformationMessage('No groups yet. Create one with "New Group…".');
+    return undefined;
+  }
+  const pick = await vscode.window.showQuickPick(
+    groups.groups.map((g) => ({ label: `$(folder) ${g.name}`, group: g })),
+    { placeHolder },
+  );
+  return pick?.group;
+}
+
+async function confirmBulkOpen(count: number): Promise<boolean> {
+  if (count <= BULK_OPEN_CONFIRM) {
+    return true;
+  }
+  const choice = await vscode.window.showWarningMessage(
+    `Open ${count} sessions? Each one opens as its own tab.`,
+    { modal: true },
+    'Open',
+  );
+  return choice === 'Open';
+}
+
+async function openSessions(provider: SessionTreeProvider, entries: SessionEntry[], title: string): Promise<void> {
+  if (!entries.length) {
+    return;
+  }
+  await vscode.window.withProgress(
+    { location: vscode.ProgressLocation.Notification, title, cancellable: true },
+    async (progress, token) => {
+      for (const [i, e] of entries.entries()) {
+        if (token.isCancellationRequested) {
+          return;
+        }
+        progress.report({ message: `${i + 1} of ${entries.length}`, increment: 100 / entries.length });
+        // Re-read the column each time: once the first session opens, the rest join it.
+        await openById(e.meta.id, provider.getClaudeColumn());
+      }
+    },
+  );
+}
+
+async function closeEntries(entries: SessionEntry[]): Promise<void> {
+  // Close only tabs that still exist: tabGroups.close rejects the whole batch if any
+  // tab object is stale.
+  const current = new Set(vscode.window.tabGroups.all.flatMap((g) => g.tabs));
+  const tabs = entries.map((e) => e.live?.tab).filter((t): t is vscode.Tab => !!t && current.has(t));
+  if (!tabs.length) {
+    return;
+  }
+  try {
+    await vscode.window.tabGroups.close(tabs);
+  } catch (err) {
+    void vscode.window.showErrorMessage(`Couldn't close tabs: ${(err as Error).message}`);
+  }
+}
+
+/** Tell the user which sessions were left open because they were still working. */
+function reportKept(kept: SessionEntry[], prefix?: string): void {
+  if (!kept.length) {
+    if (prefix) {
+      void vscode.window.showInformationMessage(prefix);
+    }
+    return;
+  }
+  const names = kept.map((e) => `"${truncate(e.meta.title || 'Claude Code', 40)}"`).join(', ');
+  const msg = `Left open ${kept.length === 1 ? 'a session' : `${kept.length} sessions`} where Claude is still working: ${names}.`;
+  void vscode.window.showInformationMessage(prefix ? `${prefix} ${msg}` : msg);
 }
 
 /** Message handler for the webview strip, sharing the same services. */

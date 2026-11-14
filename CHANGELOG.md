@@ -3,6 +3,21 @@
 All notable changes to **Claude Code Tabs** are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] — 2026-11-14
+
+### Added
+- **Search inside conversations.** Search now looks through what was said in each
+  session (your prompts and Claude's replies), not just titles. Results show how many
+  messages matched and an excerpt of the first match. Transcript text is cached by
+  modification time, so repeat searches are near-instant.
+- **Switch to Group.** Closes the Claude tabs outside a group and opens that group's
+  sessions, so a group works as a switchable workstream. Pinned sessions stay open.
+- **Open All Sessions in Group** and **Close All Tabs in Group** on the group context
+  menu and in the Command Palette.
+- Bulk close skips any session where Claude is still working (replying or running a
+  tool), judged from the transcript's last message, so Claude is not interrupted.
+  Opening more than six sessions at once asks first.
+
 ## [0.3.1] — 2026-11-14
 
 ### Fixed

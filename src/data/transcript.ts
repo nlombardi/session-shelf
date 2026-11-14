@@ -19,11 +19,23 @@ interface Acc {
   cwd?: string;
   /** The last turn was Claude asking the user (AskUserQuestion / ExitPlanMode), unanswered. */
   pendingAsk: boolean;
+  midTurn: boolean;
+  lastTurnMs: number;
   messageCount: number;
   contextTokens: number;
   outputTokens: number;
   sidechain: boolean;
 }
+
+/** Assistant stop reasons that end Claude's turn (anything else means it continues). */
+const TURN_ENDED = new Set(['end_turn', 'stop_sequence', 'max_tokens', 'refusal']);
+
+/**
+ * User records Claude never replies to, so they must not make a session look mid-turn:
+ * local slash-command echoes/output. An interruption ends the turn outright.
+ */
+const NO_REPLY_PREFIXES = ['<command-name>', '<command-message>', '<local-command-'];
+const INTERRUPTED_PREFIX = '[Request interrupted';
 
 /**
  * Parse a Claude Code transcript into display metadata. Returns null for
@@ -35,7 +47,15 @@ export async function parseSession(
   mtimeMs: number,
 ): Promise<SessionMeta | null> {
   const id = path.basename(filePath, '.jsonl');
-  const acc: Acc = { messageCount: 0, contextTokens: 0, outputTokens: 0, sidechain: false, pendingAsk: false };
+  const acc: Acc = {
+    messageCount: 0,
+    contextTokens: 0,
+    outputTokens: 0,
+    sidechain: false,
+    pendingAsk: false,
+    midTurn: false,
+    lastTurnMs: 0,
+  };
   let approx = false;
 
   if (size <= FULL_LIMIT) {
@@ -77,6 +97,8 @@ export async function parseSession(
     gitBranch: acc.gitBranch,
     cwd: acc.cwd,
     pendingAsk: acc.pendingAsk,
+    midTurn: acc.midTurn,
+    lastTurnMs: acc.lastTurnMs,
     mtimeMs,
     messageCount: acc.messageCount,
     contextTokens: acc.contextTokens,
@@ -120,8 +142,14 @@ export async function readCwd(filePath: string): Promise<string | undefined> {
 }
 
 type RawRecord = Record<string, unknown> & {
-  message?: { content?: unknown; usage?: Record<string, unknown> };
+  message?: { content?: unknown; usage?: Record<string, unknown>; stop_reason?: unknown };
 };
+
+/** A record's ISO timestamp in ms, or 0 if it has none. */
+function timeOf(r: RawRecord): number {
+  const t = typeof r.timestamp === 'string' ? Date.parse(r.timestamp) : NaN;
+  return Number.isFinite(t) ? t : 0;
+}
 
 function processLines(lines: string[], acc: Acc): void {
   for (const line of lines) {
@@ -171,6 +199,12 @@ function processLines(lines: string[], acc: Acc): void {
       case 'user': {
         acc.pendingAsk = false; // the user replied, so any pending question is answered
         const t = extractText(r.message?.content);
+        // A prompt or tool result hands the turn to Claude, except for injected
+        // (isMeta) records, slash-command echoes, and interruptions.
+        if (r.isMeta !== true && !NO_REPLY_PREFIXES.some((p) => t.startsWith(p))) {
+          acc.midTurn = !t.startsWith(INTERRUPTED_PREFIX);
+          acc.lastTurnMs = timeOf(r) || acc.lastTurnMs;
+        }
         if (t) {
           if (!acc.firstPrompt) {
             acc.firstPrompt = t;
@@ -182,6 +216,10 @@ function processLines(lines: string[], acc: Acc): void {
       }
       case 'assistant': {
         acc.messageCount++;
+        // Claude writes one record per content block; only the final one carries a
+        // turn-ending stop reason. A tool_use stop means it is running a tool.
+        acc.midTurn = !TURN_ENDED.has(String(r.message?.stop_reason));
+        acc.lastTurnMs = timeOf(r) || acc.lastTurnMs;
         if (hasAskTool(r.message?.content)) {
           acc.pendingAsk = true; // Claude asked the user and is waiting on an answer
         }
@@ -226,7 +264,7 @@ function hasAskTool(content: unknown): boolean {
 }
 
 /** Pull only human-visible text out of a message's content (skips thinking, tool calls, images). */
-function extractText(content: unknown): string {
+export function extractText(content: unknown): string {
   if (typeof content === 'string') {
     return content.trim();
   }
