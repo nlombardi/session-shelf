@@ -12,7 +12,7 @@ Group conversations by workstream, close tabs freely, and reopen any session fro
 [![License: MIT](https://img.shields.io/badge/License-MIT-1b64da?style=flat-square&labelColor=0f172a)](LICENSE)
 [![Data Sense](https://img.shields.io/badge/by-Data%20Sense-3ecf8e?style=flat-square&labelColor=0f172a)](https://datasenseco.com)
 
-<img src="https://raw.githubusercontent.com/nlombardi/session-shelf/main/media/screenshots/sidebar.png" width="460" alt="Grouped Claude Code sessions with status indicators" />
+<img src="https://raw.githubusercontent.com/nlombardi/session-shelf/main/media/screenshots/sidebar.png" width="300" alt="Grouped Claude Code sessions with status indicators" />
 
 </div>
 
@@ -53,15 +53,15 @@ All data is read from your local `~/.claude` transcripts. Nothing is sent anywhe
 
 **Grouped sessions in the Claude Code sidebar**
 
-<img src="https://raw.githubusercontent.com/nlombardi/session-shelf/main/media/screenshots/sidebar.png" width="520" alt="Session tree with a colored group" />
+<img src="https://raw.githubusercontent.com/nlombardi/session-shelf/main/media/screenshots/sidebar.png" width="300" alt="Session tree with a colored group" />
 
 **Hover preview**
 
-<img src="https://raw.githubusercontent.com/nlombardi/session-shelf/main/media/screenshots/hover.png" width="560" alt="Hover preview card" />
+<img src="https://raw.githubusercontent.com/nlombardi/session-shelf/main/media/screenshots/hover.png" width="462" alt="Hover preview card" />
 
 **Horizontal strip (bottom panel)**
 
-<img src="https://raw.githubusercontent.com/nlombardi/session-shelf/main/media/screenshots/strip.png" width="620" alt="Horizontal session strip" />
+<img src="https://raw.githubusercontent.com/nlombardi/session-shelf/main/media/screenshots/strip.png" width="640" alt="Horizontal session strip" />
 
 ## Installation
 

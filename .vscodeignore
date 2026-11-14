@@ -17,3 +17,4 @@ media/screenshots/**
 **/*.vsix
 .gitignore
 .DS_Store
+media/*.mp4
