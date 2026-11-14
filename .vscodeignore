@@ -9,7 +9,8 @@ tsconfig.json
 DESIGN.md
 PUBLISHING.md
 docs/**
-dist/smoke.cjs
+dist/**
+!dist/extension.js
 media/screenshots/**
 **/*.map
 **/*.ts
