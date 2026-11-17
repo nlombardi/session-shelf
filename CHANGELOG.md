@@ -3,6 +3,17 @@
 All notable changes to **Claude Code Tabs** are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.4.2] — 2026-11-17
+
+### Added
+- **Finished sessions get an orange dot.** With Real-time Attention on, a new `Stop`
+  hook marks a session when Claude finishes its turn, matching the dot Claude Code
+  puts on its tab icon. The dot clears when you view that tab or reply. It counts
+  toward the view badge but plays no sound and shows no notification; only questions,
+  plans and permission prompts do.
+- If you enabled Real-time Attention in an earlier version, Session Shelf offers to
+  update the hooks in `~/.claude/settings.json`.
+
 ## [0.4.1] — 2026-11-14
 
 ### Changed

@@ -113,15 +113,16 @@ To avoid interrupting Claude, these actions leave open any session where Claude 
 
 ## Real-time attention (optional)
 
-By default, waiting-for-input alerts are derived from the transcript, which Claude Code does not write in real time. To make alerts immediate, open the view's **...** menu and choose **Enable Real-time Attention**. After confirmation, three [Claude Code hooks](https://docs.claude.com/en/docs/claude-code/hooks) are added to `~/.claude/settings.json`:
+By default, waiting-for-input alerts are derived from the transcript, which Claude Code does not write in real time. To make alerts immediate, open the view's **...** menu and choose **Enable Real-time Attention**. After confirmation, four [Claude Code hooks](https://docs.claude.com/en/docs/claude-code/hooks) are added to `~/.claude/settings.json`:
 
 | Hook | Fires when | Effect |
 | --- | --- | --- |
 | `PreToolUse` (`AskUserQuestion` / `ExitPlanMode`) | Claude asks a question or presents a plan | Alert on |
 | `Notification` (permission prompt) | Claude needs permission | Alert on |
+| `Stop` | Claude finishes its turn | Orange "finished" dot until you view the tab, like the dot on Claude Code's tab icon |
 | `UserPromptSubmit` | You reply | Alert off |
 
-Each hook writes or removes a marker file under `~/.claude/hooks/session-shelf/`, which the extension watches. Stale markers are ignored once the transcript catches up. **Disable Real-time Attention** removes the hooks and scripts and restores your `settings.json`. Start a new Claude Code session, or reload the window, after enabling.
+Each hook writes or removes a marker file under `~/.claude/hooks/session-shelf/`, which the extension watches. Stale question markers are ignored once the transcript catches up. If you enabled Real-time Attention in an earlier version, Session Shelf offers to update the hooks. **Disable Real-time Attention** removes the hooks and scripts and restores your `settings.json`. Start a new Claude Code session, or reload the window, after enabling.
 
 When a session starts waiting, the extension can also play a sound and show a notification: a native OS notification when VS Code is in the background, or an in-app notification with a **Reveal** action when it is focused.
 

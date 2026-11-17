@@ -70,6 +70,8 @@ export interface SessionEntry {
    * you (a real-time, lag-free signal); undefined when no marker is present.
    */
   attentionMtime?: number;
+  /** Why the marker was set: 'ask' (question/plan/permission) or 'done' (finished, unseen). */
+  attentionKind?: 'ask' | 'done';
 }
 
 /** A user-defined, named + colored group (Chrome-style). */
@@ -105,7 +107,7 @@ export interface PersistedState {
 
 // --- Serializable DTOs posted to the webview strip ---
 
-export type SessionStatus = 'active' | 'needs-action' | 'open' | 'closed';
+export type SessionStatus = 'active' | 'needs-action' | 'done' | 'open' | 'closed';
 
 export interface StripSession {
   id: string;

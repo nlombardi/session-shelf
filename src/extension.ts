@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { SessionStore } from './data/sessionStore';
 import { GroupStore } from './data/groupStore';
-import { AttentionStore } from './data/attentionStore';
+import { AttentionKind, AttentionStore } from './data/attentionStore';
 import { consumeHandoff } from './data/handoff';
 import { nativeNotify, playSound } from './data/notify';
 import { GroupTreeNode, SessionTreeProvider, TreeNode } from './view/sessionTree';
@@ -68,7 +68,7 @@ export function activate(context: vscode.ExtensionContext): void {
   let disposed = false;
   context.subscriptions.push({ dispose: () => (disposed = true) });
 
-  // "needs-action" count on the view icon (sessions where Claude asked and is waiting).
+  // Count on the view icon: sessions where Claude asked, or finished while you weren't looking.
   const updateBadge = (): void => {
     const n = provider.getAttentionCount();
     const badge =
@@ -88,6 +88,14 @@ export function activate(context: vscode.ExtensionContext): void {
     building = true;
     try {
       await provider.build();
+      // A finished session you're now looking at is "seen" — drop its marker, just
+      // as Claude Code clears the dot on its tab icon.
+      const seen = vscode.window.state.focused ? provider.getSeenDoneIds() : [];
+      if (seen.length) {
+        seen.forEach((id) => attention.clear(id));
+        provider.forgetAttention(seen);
+        await provider.build();
+      }
       provider.refresh();
       updateBadge();
     } finally {
@@ -119,10 +127,10 @@ export function activate(context: vscode.ExtensionContext): void {
   const attention = new AttentionStore(context.extensionUri);
   let attentionWatcher: vscode.FileSystemWatcher | undefined;
   // Notify only on the *transition* into "needs you" (a marker id we hadn't seen).
-  let knownAttention = new Set<string>();
+  let knownAttention = new Map<string, AttentionKind>();
   let attentionBaselined = false;
 
-  const fireAttention = (id: string): void => {
+  const fireAttention = (id: string, kind: AttentionKind): void => {
     const wantSound = cfg().get('attentionSound', true);
     const wantNotif = cfg().get('attentionNotification', true);
     if (!wantSound && !wantNotif) {
@@ -134,7 +142,10 @@ export function activate(context: vscode.ExtensionContext): void {
       // You're in VS Code — show the actionable toast; play the sound alongside.
       if (wantNotif) {
         void vscode.window
-          .showInformationMessage(`${title} — Claude is waiting for you`, 'Reveal')
+          .showInformationMessage(
+            kind === 'done' ? `${title} — Claude finished` : `${title} — Claude is waiting for you`,
+            'Reveal',
+          )
           .then((pick) => {
             if (pick === 'Reveal') {
               void openById(id, provider.getClaudeColumn());
@@ -146,7 +157,11 @@ export function activate(context: vscode.ExtensionContext): void {
       }
     } else if (wantNotif) {
       // You're elsewhere — a native banner surfaces it (and carries the sound).
-      nativeNotify('Claude Code', `${title} needs you`, wantSound ? soundName : undefined);
+      nativeNotify(
+        'Claude Code',
+        kind === 'done' ? `${title} finished` : `${title} needs you`,
+        wantSound ? soundName : undefined,
+      );
     } else if (wantSound) {
       playSound(soundName);
     }
@@ -154,11 +169,11 @@ export function activate(context: vscode.ExtensionContext): void {
 
   const refreshAttention = (): void => {
     const scan = attention.scan();
-    const mtimes = new Map<string, number>();
+    const markers = new Map<string, { mtimeMs: number; kind: AttentionKind }>();
     for (const [id, m] of scan) {
-      mtimes.set(id, m.mtimeMs);
+      markers.set(id, { mtimeMs: m.mtimeMs, kind: m.kind });
     }
-    provider.setAttention(mtimes);
+    provider.setAttention(markers);
     void rebuild();
 
     if (!attentionBaselined) {
@@ -166,18 +181,21 @@ export function activate(context: vscode.ExtensionContext): void {
     } else {
       const folders = (vscode.workspace.workspaceFolders ?? []).map((f) => f.uri.fsPath);
       for (const [id, m] of scan) {
-        if (knownAttention.has(id)) {
+        if (knownAttention.get(id) === m.kind) {
           continue; // already knew about it — only fire on the transition
+        }
+        if (m.kind === 'done') {
+          continue; // a finished turn is shown silently (orange dot) — only asks ring
         }
         const belongsHere = m.cwd
           ? folders.some((f) => path.resolve(f) === path.resolve(m.cwd))
           : !!provider.getEntry(id);
         if (belongsHere) {
-          fireAttention(id);
+          fireAttention(id, m.kind);
         }
       }
     }
-    knownAttention = new Set(scan.keys());
+    knownAttention = new Map([...scan].map(([id, m]) => [id, m.kind]));
   };
   const syncAttention = (): void => {
     const installed = attention.isInstalled();
@@ -198,7 +216,30 @@ export function activate(context: vscode.ExtensionContext): void {
       provider.setAttention(new Map());
     }
     refreshAttention();
+    if (installed && !outdatedPrompted && attention.isOutdated()) {
+      outdatedPrompted = true;
+      void vscode.window
+        .showInformationMessage(
+          'Session Shelf: Real-time Attention can now also flag sessions where Claude finished its turn (like the dot on Claude Code tabs). Update the hooks in ~/.claude/settings.json?',
+          'Update hooks',
+        )
+        .then(async (pick) => {
+          if (pick !== 'Update hooks') {
+            return;
+          }
+          try {
+            await attention.install();
+            syncAttention();
+            void vscode.window.showInformationMessage(
+              'Hooks updated. New Claude Code sessions pick them up; reload the window to apply them to open ones.',
+            );
+          } catch (e) {
+            void vscode.window.showErrorMessage(`Couldn't update hooks: ${(e as Error).message}`);
+          }
+        });
+    }
   };
+  let outdatedPrompted = false;
 
   const services: ExtensionServices = {
     store,
@@ -213,6 +254,8 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.window.tabGroups.onDidChangeTabs(debouncedRebuild),
     vscode.window.tabGroups.onDidChangeTabGroups(debouncedRebuild),
+    // Coming back to the window counts as looking at its active Claude tab.
+    vscode.window.onDidChangeWindowState((s) => s.focused && debouncedRebuild()),
     groups.onDidChange(() => void rebuild()),
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('sessionShelf')) {

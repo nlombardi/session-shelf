@@ -14,13 +14,23 @@ export function needsAction(e: SessionEntry): boolean {
   if (e.meta.pendingAsk) {
     return true;
   }
-  return e.attentionMtime !== undefined && e.meta.mtimeMs <= e.attentionMtime;
+  return e.attentionKind !== 'done' && e.attentionMtime !== undefined && e.meta.mtimeMs <= e.attentionMtime;
+}
+
+/**
+ * Claude finished its turn and you haven't looked yet (a Stop-hook marker). Unlike
+ * an ask, this isn't reconciled against the transcript — Claude Code keeps writing
+ * bookkeeping entries after Stop — so it lasts until you view the tab or reply.
+ */
+export function isUnseenDone(e: SessionEntry): boolean {
+  return e.attentionKind === 'done' && e.attentionMtime !== undefined;
 }
 
 /**
  * Session status from what we can observe:
  * - closed: no live tab.
  * - needs-action: waiting on you (see needsAction).
+ * - done: finished its turn while you weren't looking (see isUnseenDone).
  * - active: the tab you're currently viewing.
  * - open: open but idle.
  */
@@ -30,6 +40,9 @@ export function statusOf(e: SessionEntry): SessionStatus {
   }
   if (needsAction(e)) {
     return 'needs-action';
+  }
+  if (isUnseenDone(e)) {
+    return 'done';
   }
   if (e.live?.isActive) {
     return 'active';
@@ -41,6 +54,8 @@ export function sessionIcon(e: SessionEntry): vscode.ThemeIcon {
   switch (statusOf(e)) {
     case 'needs-action':
       return new vscode.ThemeIcon('bell-dot', new vscode.ThemeColor('charts.yellow'));
+    case 'done':
+      return new vscode.ThemeIcon('circle-filled', new vscode.ThemeColor('charts.orange'));
     case 'active':
       return new vscode.ThemeIcon('circle-filled', new vscode.ThemeColor('charts.green'));
     case 'open':
@@ -76,6 +91,7 @@ export function sessionContext(e: SessionEntry): string {
 const STATUS_LABEL: Record<SessionStatus, string> = {
   active: '$(circle-filled) Active',
   'needs-action': '$(bell-dot) Waiting for you',
+  done: '$(circle-filled) Finished — your turn',
   open: '$(circle-filled) Open',
   closed: '$(circle-outline) Closed',
 };

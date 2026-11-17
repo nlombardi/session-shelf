@@ -2,7 +2,7 @@
 	"name": "session-shelf",
 	"displayName": "Session Shelf for Claude Code",
 	"description": "Keep your Claude Code sessions in colored groups that survive closing the tab — reopen any conversation from its group, with rich hover previews.",
-	"version": "0.4.1",
+	"version": "0.4.2",
 	"publisher": "datasense",
 	"license": "MIT",
 	"icon": "resources/icon.png",

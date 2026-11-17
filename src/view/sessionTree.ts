@@ -36,6 +36,7 @@ function rank(e: SessionEntry): number {
   }
   switch (statusOf(e)) {
     case 'needs-action':
+    case 'done':
       return 1;
     case 'active':
       return 2;
@@ -116,7 +117,7 @@ export class SessionTreeProvider
   private maxRecent = 25;
   private showClosed = true;
   /** sessionId -> hook marker mtime (ms). Real-time "needs you" flags from Claude Code hooks. */
-  private attention = new Map<string, number>();
+  private attention = new Map<string, { mtimeMs: number; kind: 'ask' | 'done' }>();
   /**
    * When the user starts a new session from a group, we latch onto the new tab
    * (its Tab object is stable even while the session has no id yet), show it in
@@ -191,9 +192,16 @@ export class SessionTreeProvider
     this.showClosed = showClosed;
   }
 
-  /** Replace the hook-driven attention markers (sessionId -> marker mtime). */
-  setAttention(map: Map<string, number>): void {
+  /** Replace the hook-driven attention markers (sessionId -> marker mtime + kind). */
+  setAttention(map: Map<string, { mtimeMs: number; kind: 'ask' | 'done' }>): void {
     this.attention = map;
+  }
+
+  /** Drop markers locally (their files were just removed) so the next build reflects it. */
+  forgetAttention(ids: string[]): void {
+    for (const id of ids) {
+      this.attention.delete(id);
+    }
   }
 
   refresh(): void {
@@ -242,7 +250,8 @@ export class SessionTreeProvider
         pinned: this.groups.isPinned(meta.id),
         groupId: this.groups.groupOf(meta.id),
         subagents: await this.store.getSubagents(meta.id),
-        attentionMtime: this.attention.get(meta.id),
+        attentionMtime: this.attention.get(meta.id)?.mtimeMs,
+        attentionKind: this.attention.get(meta.id)?.kind,
       });
     }
 
@@ -579,9 +588,19 @@ export class SessionTreeProvider
     });
   }
 
-  /** Number of open sessions waiting on the user (needs-action) — drives the view badge. */
+  /** Number of open sessions waiting on the user (asked, or finished unseen) — drives the view badge. */
   getAttentionCount(): number {
-    return this.entries.filter((e) => statusOf(e) === 'needs-action').length;
+    return this.entries.filter((e) => {
+      const s = statusOf(e);
+      return s === 'needs-action' || s === 'done';
+    }).length;
+  }
+
+  /** Open sessions with an unseen-finish marker whose tab is the active one in its group. */
+  getSeenDoneIds(): string[] {
+    return this.entries
+      .filter((e) => e.attentionKind === 'done' && e.attentionMtime !== undefined && e.live?.isActive)
+      .map((e) => e.meta.id);
   }
 
   // --- Drag & drop: move sessions between groups ---

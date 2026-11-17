@@ -16,10 +16,33 @@ const MARKER = 'session-shelf';
 /** A marker older than this is treated as abandoned and pruned (safety net). */
 const STALE_MS = 24 * 60 * 60 * 1000;
 
-/** A live attention marker: when it fired and which session cwd it belongs to. */
+/**
+ * Why a session wants you:
+ * - 'ask': Claude asked a question, presented a plan, or needs permission.
+ * - 'done': Claude finished its turn and you haven't looked yet (mirrors the
+ *   orange dot Claude Code puts on its tab icon).
+ */
+export type AttentionKind = 'ask' | 'done';
+
+/** A live attention marker: when it fired, which session cwd it belongs to, and why. */
 export interface AttentionMarker {
   mtimeMs: number;
   cwd: string;
+  kind: AttentionKind;
+}
+
+/** Marker body: JSON {cwd, kind} (current hooks) or a bare cwd (hooks from ≤ 0.4.1). */
+export function parseMarker(body: string): { cwd: string; kind: AttentionKind } {
+  const t = body.trim();
+  if (t.startsWith('{')) {
+    try {
+      const j = JSON.parse(t);
+      return { cwd: typeof j.cwd === 'string' ? j.cwd : '', kind: j.kind === 'done' ? 'done' : 'ask' };
+    } catch {
+      /* fall through */
+    }
+  }
+  return { cwd: t, kind: 'ask' };
 }
 
 /** One Claude Code hook we register, described for both install and the consent prompt. */
@@ -42,6 +65,11 @@ function specs(): HookSpec[] {
       event: 'Notification',
       command: `node "${SET_SCRIPT}"`,
       purpose: 'Claude needs permission → light the bell',
+    },
+    {
+      event: 'Stop',
+      command: `node "${SET_SCRIPT}" done`,
+      purpose: 'Claude finished its turn → mark the session unread until you look',
     },
     {
       event: 'UserPromptSubmit',
@@ -75,6 +103,34 @@ export class AttentionStore {
     );
   }
 
+  /**
+   * True when our hooks are installed but don't match what this version registers
+   * (e.g. installed before the Stop hook existed) — the caller offers a re-install.
+   */
+  isOutdated(): boolean {
+    const hooks = this.readSettings()?.hooks;
+    if (!hooks || typeof hooks !== 'object') {
+      return false;
+    }
+    return specs().some((s) => {
+      const arr = hooks[s.event];
+      return !(Array.isArray(arr) && arr.some((e) => JSON.stringify(e).includes(JSON.stringify(s.command).slice(1, -1))));
+    });
+  }
+
+  /** Remove one session's marker (e.g. you looked at a finished session). */
+  clear(sessionId: string): void {
+    const sid = sessionId.replace(/[^A-Za-z0-9_-]/g, '');
+    if (!sid) {
+      return;
+    }
+    try {
+      fs.rmSync(path.join(ATTENTION_DIR, sid), { force: true });
+    } catch {
+      /* ignore */
+    }
+  }
+
   ensureDir(): void {
     try {
       fs.mkdirSync(ATTENTION_DIR, { recursive: true });
@@ -84,7 +140,7 @@ export class AttentionStore {
   }
 
   /**
-   * Current per-session attention markers: sessionId -> { marker mtime, session cwd }.
+   * Current per-session attention markers: sessionId -> { marker mtime, session cwd, kind }.
    * The cwd (marker file contents) lets callers scope notifications to the window that
    * owns the session. Prunes markers older than STALE_MS as it goes (self-cleaning).
    */
@@ -108,13 +164,13 @@ export class AttentionStore {
           fs.rmSync(full, { force: true });
           continue;
         }
-        let cwd = '';
+        let body = '';
         try {
-          cwd = fs.readFileSync(full, 'utf8').trim();
+          body = fs.readFileSync(full, 'utf8');
         } catch {
           /* mtime is enough; cwd optional */
         }
-        out.set(name, { mtimeMs: st.mtimeMs, cwd });
+        out.set(name, { mtimeMs: st.mtimeMs, ...parseMarker(body) });
       } catch {
         /* skip unreadable entry */
       }
